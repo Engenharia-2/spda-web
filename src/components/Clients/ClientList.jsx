@@ -8,6 +8,13 @@ const ClientList = () => {
     const [clients, setClients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchClients = async () => {
@@ -46,7 +53,7 @@ const ClientList = () => {
 
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
                 <div>
                     <h1 style={{ fontSize: '1.875rem', fontWeight: '700' }}>Meus Clientes</h1>
                     <p style={{ color: 'var(--color-text-muted)' }}>Gerencie sua base de clientes.</p>
@@ -63,7 +70,8 @@ const ClientList = () => {
                         alignItems: 'center',
                         gap: 'var(--spacing-sm)',
                         boxShadow: 'var(--shadow-glow)',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap'
                     }}>
                         <span>+</span> Novo Cliente
                     </button>
@@ -117,49 +125,108 @@ const ClientList = () => {
                     )}
                 </div>
             ) : (
-                <div style={{
-                    backgroundColor: 'var(--color-bg-secondary)',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid var(--color-border)',
-                    overflow: 'hidden'
-                }}>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-tertiary)' }}>
-                                    <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Nome</th>
-                                    <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Contato</th>
-                                    <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Email</th>
-                                    <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Telefone</th>
-                                    <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredClients.map((client) => (
-                                    <tr key={client.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                        <td style={{ padding: 'var(--spacing-md)', fontWeight: '500' }}>{client.name}</td>
-                                        <td style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-secondary)' }}>{client.contactName || '-'}</td>
-                                        <td style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-secondary)' }}>{client.email || '-'}</td>
-                                        <td style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-secondary)' }}>{client.phone || '-'}</td>
-                                        <td style={{ padding: 'var(--spacing-md)', display: 'flex', gap: '0.5rem' }}>
-                                            <Link to={`/client-form?id=${client.id}`} style={{ textDecoration: 'none' }}>
-                                                <button style={{ background: 'none', border: 'none', color: 'var(--color-accent-primary)', cursor: 'pointer', fontWeight: '500' }}>
-                                                    Editar
-                                                </button>
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(client.id)}
-                                                style={{ background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer', fontWeight: '500' }}
-                                            >
-                                                Excluir
-                                            </button>
-                                        </td>
+                <>
+                    {/* Desktop Table View */}
+                    <div className="desktop-view" style={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '1px solid var(--color-border)',
+                        overflow: 'hidden',
+                        display: isMobile ? 'none' : 'block'
+                    }}>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-tertiary)' }}>
+                                        <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Nome</th>
+                                        <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Contato</th>
+                                        <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Email</th>
+                                        <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Telefone</th>
+                                        <th style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-muted)', fontWeight: '600', fontSize: '0.875rem' }}>Ações</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {filteredClients.map((client) => (
+                                        <tr key={client.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                            <td style={{ padding: 'var(--spacing-md)', fontWeight: '500' }}>{client.name}</td>
+                                            <td style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-secondary)' }}>{client.contactName || '-'}</td>
+                                            <td style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-secondary)' }}>{client.email || '-'}</td>
+                                            <td style={{ padding: 'var(--spacing-md)', color: 'var(--color-text-secondary)' }}>{client.phone || '-'}</td>
+                                            <td style={{ padding: 'var(--spacing-md)', display: 'flex', gap: '0.5rem' }}>
+                                                <Link to={`/client-form?id=${client.id}`} style={{ textDecoration: 'none' }}>
+                                                    <button style={{ background: 'none', border: 'none', color: 'var(--color-accent-primary)', cursor: 'pointer', fontWeight: '500' }}>
+                                                        Editar
+                                                    </button>
+                                                </Link>
+                                                <button
+                                                    onClick={() => handleDelete(client.id)}
+                                                    style={{ background: 'none', border: 'none', color: 'var(--color-error)', cursor: 'pointer', fontWeight: '500' }}
+                                                >
+                                                    Excluir
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+
+                    {/* Mobile Card View */}
+                    <div className="mobile-view" style={{ display: isMobile ? 'flex' : 'none', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                        {filteredClients.map((client) => (
+                            <div key={client.id} style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                borderRadius: 'var(--radius-md)',
+                                border: '1px solid var(--color-border)',
+                                padding: 'var(--spacing-md)'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 'var(--spacing-sm)' }}>
+                                    <div>
+                                        <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-text-primary)' }}>{client.name}</h3>
+                                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{client.contactName}</p>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <Link to={`/client-form?id=${client.id}`} style={{ textDecoration: 'none' }}>
+                                            <button style={{
+                                                padding: '0.25rem 0.5rem',
+                                                background: 'rgba(56, 189, 248, 0.1)',
+                                                border: 'none',
+                                                borderRadius: 'var(--radius-sm)',
+                                                color: 'var(--color-accent-primary)',
+                                                cursor: 'pointer'
+                                            }}>
+                                                ✏️
+                                            </button>
+                                        </Link>
+                                        <button
+                                            onClick={() => handleDelete(client.id)}
+                                            style={{
+                                                padding: '0.25rem 0.5rem',
+                                                background: 'rgba(239, 68, 68, 0.1)',
+                                                border: 'none',
+                                                borderRadius: 'var(--radius-sm)',
+                                                color: 'var(--color-error)',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.875rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-secondary)' }}>
+                                        <span>📧</span> {client.email || '-'}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-secondary)' }}>
+                                        <span>📱</span> {client.phone || '-'}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
             )}
         </div>
     );

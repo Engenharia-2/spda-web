@@ -8,6 +8,8 @@ import ReportList from './components/Report/ReportList';
 import ClientList from './components/Clients/ClientList';
 import ClientForm from './components/Clients/ClientForm';
 import Settings from './components/Settings/Settings';
+import AdminRoute from './components/Auth/AdminRoute';
+import UserManagement from './components/Admin/UserManagement';
 import Login from './components/Auth/Login';
 
 const PrivateRoute = ({ children }) => {
@@ -62,6 +64,13 @@ function App() {
                 <Settings />
               </Layout>
             </PrivateRoute>
+          } />
+          <Route path="/admin" element={
+            <AdminRoute>
+              <Layout>
+                <UserManagement />
+              </Layout>
+            </AdminRoute>
           } />
         </Routes>
       </Router>

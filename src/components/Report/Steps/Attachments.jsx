@@ -1,212 +1,220 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
+import { StorageService } from '../../../services/StorageService';
 
 const Attachments = ({ data, updateData }) => {
-    const [documents, setDocuments] = useState(data.attachments?.documents || []);
-    const [photos, setPhotos] = useState(data.attachments?.photos || []);
+    const { currentUser } = useAuth();
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
 
-    const handleDocumentUpload = (e) => {
+    const attachments = data.attachments || [];
+
+    const handleAddClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = async (e) => {
         const files = Array.from(e.target.files);
-        const newDocs = files.map(file => ({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            file: file // In a real app, we might upload this immediately or convert to base64
-        }));
+        if (files.length === 0 || !currentUser) return;
 
-        const updatedDocs = [...documents, ...newDocs];
-        setDocuments(updatedDocs);
-        updateData({ attachments: { documents: updatedDocs, photos } });
+        setUploading(true);
+
+        try {
+            const newAttachments = [];
+
+            for (const file of files) {
+                // Path: reports/{userId}/{reportId (or temp)}/attachments/{timestamp}_{filename}
+                const path = `reports/${currentUser.uid}/${data.id || 'temp'}/attachments/${Date.now()}_${file.name}`;
+                const uploadedImage = await StorageService.uploadImage(file, path);
+
+                // Initialize with empty description
+                newAttachments.push({ ...uploadedImage, description: '' });
+            }
+
+            updateData({
+                attachments: [...attachments, ...newAttachments]
+            });
+        } catch (error) {
+            console.error('Error uploading attachments:', error);
+            alert('Erro ao enviar anexos.');
+        } finally {
+            setUploading(false);
+            // Reset input
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
     };
 
-    const handlePhotoUpload = (e) => {
-        const files = Array.from(e.target.files);
-        const newPhotos = files.map(file => ({
-            name: file.name,
-            preview: URL.createObjectURL(file),
-            description: '',
-            file: file
-        }));
-
-        const updatedPhotos = [...photos, ...newPhotos];
-        setPhotos(updatedPhotos);
-        updateData({ attachments: { documents, photos: updatedPhotos } });
+    const handleRemoveAttachment = (index) => {
+        if (window.confirm('Remover este anexo?')) {
+            const newAttachments = [...attachments];
+            newAttachments.splice(index, 1);
+            updateData({ attachments: newAttachments });
+        }
     };
 
-    const handlePhotoDescriptionChange = (index, description) => {
-        const updatedPhotos = [...photos];
-        updatedPhotos[index].description = description;
-        setPhotos(updatedPhotos);
-        updateData({ attachments: { documents, photos: updatedPhotos } });
-    };
-
-    const removeDocument = (index) => {
-        const updatedDocs = documents.filter((_, i) => i !== index);
-        setDocuments(updatedDocs);
-        updateData({ attachments: { documents: updatedDocs, photos } });
-    };
-
-    const removePhoto = (index) => {
-        const updatedPhotos = photos.filter((_, i) => i !== index);
-        setPhotos(updatedPhotos);
-        updateData({ attachments: { documents, photos: updatedPhotos } });
+    const handleDescriptionChange = (index, description) => {
+        const newAttachments = [...attachments];
+        newAttachments[index] = { ...newAttachments[index], description };
+        updateData({ attachments: newAttachments });
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2xl)' }}>
-
-            {/* Documents Section */}
-            <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: 'var(--spacing-md)' }}>
-                    Documentos Gerais (ART, Projetos, etc.)
-                </h3>
-
-                <div style={{ marginBottom: 'var(--spacing-md)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 'var(--spacing-md)',
+                backgroundColor: 'var(--color-bg-primary)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--color-border)'
+            }}>
+                <div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Galeria de Anexos</h3>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                        Adicione fotos gerais do local, diagramas ou documentos complementares.
+                    </p>
+                </div>
+                <div>
                     <input
                         type="file"
-                        multiple
-                        onChange={handleDocumentUpload}
-                        id="doc-upload"
+                        ref={fileInputRef}
                         style={{ display: 'none' }}
+                        accept="image/*"
+                        multiple
+                        onChange={handleFileChange}
                     />
-                    <label
-                        htmlFor="doc-upload"
+                    <button
+                        onClick={handleAddClick}
+                        disabled={uploading}
                         style={{
-                            display: 'inline-block',
+                            backgroundColor: 'var(--color-accent-primary)',
+                            color: 'white',
+                            border: 'none',
                             padding: '0.5rem 1rem',
-                            backgroundColor: 'var(--color-bg-tertiary)',
-                            border: '1px solid var(--color-border)',
                             borderRadius: 'var(--radius-md)',
-                            cursor: 'pointer',
-                            fontWeight: '500'
+                            fontWeight: '600',
+                            cursor: uploading ? 'wait' : 'pointer',
+                            opacity: uploading ? 0.7 : 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
                         }}
                     >
-                        + Adicionar Documentos
-                    </label>
+                        {uploading ? 'Enviando...' : '➕ Adicionar Fotos'}
+                    </button>
                 </div>
-
-                {documents.length > 0 && (
-                    <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-                        {documents.map((doc, index) => (
-                            <li key={index} style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: 'var(--spacing-sm)',
-                                backgroundColor: 'var(--color-bg-primary)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius-md)'
-                            }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                                    📄 {doc.name} <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>({(doc.size / 1024).toFixed(1)} KB)</span>
-                                </span>
-                                <button
-                                    onClick={() => removeDocument(index)}
-                                    style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        color: 'var(--color-error)',
-                                        cursor: 'pointer',
-                                        fontSize: '1.25rem'
-                                    }}
-                                >
-                                    &times;
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                )}
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)' }} />
-
-            {/* Photos Section */}
-            <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: 'var(--spacing-md)' }}>
-                    Registro Fotográfico
-                </h3>
-
-                <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                    <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handlePhotoUpload}
-                        id="photo-upload"
-                        style={{ display: 'none' }}
-                    />
-                    <label
-                        htmlFor="photo-upload"
-                        style={{
-                            display: 'inline-block',
-                            padding: '0.5rem 1rem',
-                            backgroundColor: 'var(--color-bg-tertiary)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-md)',
-                            cursor: 'pointer',
-                            fontWeight: '500'
-                        }}
-                    >
-                        + Adicionar Fotos
-                    </label>
+            {attachments.length === 0 ? (
+                <div style={{
+                    textAlign: 'center',
+                    padding: 'var(--spacing-2xl)',
+                    color: 'var(--color-text-muted)',
+                    border: '2px dashed var(--color-border)',
+                    borderRadius: 'var(--radius-lg)'
+                }}>
+                    Nenhum anexo adicionado ainda.
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 'var(--spacing-lg)' }}>
-                    {photos.map((photo, index) => (
-                        <div key={index} style={{
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-md)',
-                            overflow: 'hidden',
-                            backgroundColor: 'var(--color-bg-primary)'
-                        }}>
-                            <div style={{ position: 'relative', height: '200px' }}>
-                                <img
-                                    src={photo.preview}
-                                    alt={photo.name}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                                <button
-                                    onClick={() => removePhoto(index)}
-                                    style={{
-                                        position: 'absolute',
-                                        top: '5px',
-                                        right: '5px',
-                                        background: 'rgba(0,0,0,0.5)',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '50%',
-                                        width: '24px',
-                                        height: '24px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}
-                                >
-                                    &times;
-                                </button>
-                            </div>
-                            <div style={{ padding: 'var(--spacing-sm)' }}>
-                                <input
-                                    type="text"
-                                    placeholder="Descrição da foto..."
-                                    value={photo.description}
-                                    onChange={(e) => handlePhotoDescriptionChange(index, e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: 'var(--spacing-xs)',
-                                        border: '1px solid var(--color-border)',
-                                        borderRadius: 'var(--radius-sm)',
-                                        fontSize: '0.875rem'
-                                    }}
-                                />
-                            </div>
-                        </div>
+            ) : (
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                    gap: 'var(--spacing-md)'
+                }}>
+                    {attachments.map((attachment, index) => (
+                        <AttachmentItem
+                            key={index}
+                            attachment={attachment}
+                            index={index}
+                            onRemove={() => handleRemoveAttachment(index)}
+                            onDescriptionChange={handleDescriptionChange}
+                        />
                     ))}
                 </div>
-            </div>
-
+            )}
         </div>
     );
 };
 
 export default Attachments;
+
+// Helper component to resolve local URLs
+const AttachmentItem = ({ attachment, index, onRemove, onDescriptionChange }) => {
+    const [src, setSrc] = useState(attachment.url);
+
+    React.useEffect(() => {
+        const loadSrc = async () => {
+            if (attachment.url && attachment.url.startsWith('local-image://')) {
+                const resolved = await StorageService.resolveImageUrl(attachment.url);
+                setSrc(resolved);
+            } else {
+                setSrc(attachment.url);
+            }
+        };
+        loadSrc();
+    }, [attachment.url]);
+
+    return (
+        <div style={{
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            overflow: 'hidden',
+            backgroundColor: 'var(--color-bg-primary)',
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
+            <div style={{ position: 'relative', height: '150px' }}>
+                <img
+                    src={src}
+                    alt={attachment.name}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                    }}
+                />
+                <button
+                    onClick={onRemove}
+                    style={{
+                        position: 'absolute',
+                        top: '5px',
+                        right: '5px',
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '24px',
+                        height: '24px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                    title="Remover"
+                >
+                    ✕
+                </button>
+            </div>
+            <div style={{ padding: 'var(--spacing-sm)' }}>
+                <input
+                    type="text"
+                    placeholder="Descrição da imagem..."
+                    value={attachment.description || ''}
+                    onChange={(e) => onDescriptionChange(index, e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--color-border)',
+                        fontSize: '0.875rem',
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        color: 'var(--color-text-primary)'
+                    }}
+                />
+            </div>
+        </div>
+    );
+};

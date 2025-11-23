@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
                 setDoc(doc(db, 'users', user.uid), {
                     email: user.email,
                     status: 'pending',
+                    subscription: 'free', // Default plan
                     createdAt: new Date().toISOString()
                 }),
                 timeout
@@ -133,7 +134,17 @@ export const AuthProvider = ({ children }) => {
                 try {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
                     if (userDoc.exists() && userDoc.data().status === 'approved') {
-                        setCurrentUser(user);
+                        const userData = userDoc.data();
+
+                        // Bootstrap Admin: Check if email matches the hardcoded admin email
+                        const isAdmin = userData.role === 'admin' || user.email === 'lucas@lhf.ind.br';
+
+                        setCurrentUser({
+                            ...user,
+                            subscription: userData.subscription || 'free',
+                            role: isAdmin ? 'admin' : (userData.role || 'user'),
+                            isPro: userData.subscription === 'pro'
+                        });
                     } else {
                         console.log('User not approved or not found, signing out...');
                         await signOut(auth);
