@@ -6,9 +6,12 @@ import EquipmentData from './Steps/EquipmentData';
 import Checklist from './Steps/Checklist';
 import MeasurementData from './Steps/MeasurementData';
 import Attachments from './Steps/Attachments';
+import TechnicalOpinion from './Steps/TechnicalOpinion';
+import Signature from './Steps/Signature';
 import { generateReport } from '../../utils/PDFGenerator';
 import { StorageService } from '../../services/StorageService';
 import { useAuth } from '../../contexts/AuthContext';
+import useMobile from '../../hooks/useMobile';
 
 const ReportForm = () => {
     const [activeStep, setActiveStep] = useState(0);
@@ -18,6 +21,7 @@ const ReportForm = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const reportId = searchParams.get('id');
+    const isMobile = useMobile();
 
     useEffect(() => {
         const loadReport = async () => {
@@ -48,7 +52,9 @@ const ReportForm = () => {
         'Equipamento',
         'Checklist',
         'Medições',
-        'Anexos'
+        'Parecer Técnico',
+        'Anexos',
+        'Assinatura'
     ];
 
     const handleSaveDraft = async () => {
@@ -111,7 +117,11 @@ const ReportForm = () => {
             case 4:
                 return <MeasurementData data={formData} updateData={updateData} />;
             case 5:
+                return <TechnicalOpinion data={formData} updateData={updateData} />;
+            case 6:
                 return <Attachments data={formData} updateData={updateData} />;
+            case 7:
+                return <Signature data={formData} updateData={updateData} />;
             default:
                 return (
                     <div style={{
@@ -131,9 +141,16 @@ const ReportForm = () => {
 
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-            <div style={{ marginBottom: 'var(--spacing-xl)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{
+                marginBottom: 'var(--spacing-xl)',
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'flex-start' : 'center',
+                gap: isMobile ? '1rem' : '0'
+            }}>
                 <div>
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: '700' }}>Novo Relatório</h1>
+                    <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.875rem', fontWeight: '700' }}>Novo Relatório</h1>
                     <p style={{ color: 'var(--color-text-muted)' }}>Preencha os dados para gerar o laudo de SPDA.</p>
                 </div>
                 <button
@@ -149,7 +166,9 @@ const ReportForm = () => {
                         cursor: saving ? 'wait' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.5rem'
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        width: isMobile ? '100%' : 'auto'
                     }}
                 >
                     {saving ? 'Salvando...' : '💾 Salvar Rascunho'}
@@ -189,17 +208,22 @@ const ReportForm = () => {
             {/* Form Content Area */}
             <div style={{
                 backgroundColor: 'var(--color-bg-secondary)',
-                padding: 'var(--spacing-xl)',
+                padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-xl)',
                 borderRadius: 'var(--radius-lg)',
                 border: '1px solid var(--color-border)',
                 minHeight: '400px'
             }}>
-                <h2 style={{ marginBottom: 'var(--spacing-lg)' }}>{steps[activeStep]}</h2>
+                <h2 style={{ marginBottom: 'var(--spacing-lg)', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>{steps[activeStep]}</h2>
 
                 {renderStep()}
 
                 {/* Navigation Buttons */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--spacing-xl)' }}>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginTop: 'var(--spacing-xl)',
+                    gap: isMobile ? '1rem' : '0'
+                }}>
                     <button
                         disabled={activeStep === 0}
                         onClick={() => setActiveStep(prev => prev - 1)}
@@ -210,7 +234,8 @@ const ReportForm = () => {
                             background: 'transparent',
                             color: 'var(--color-text-primary)',
                             opacity: activeStep === 0 ? 0.5 : 1,
-                            cursor: activeStep === 0 ? 'not-allowed' : 'pointer'
+                            cursor: activeStep === 0 ? 'not-allowed' : 'pointer',
+                            flex: isMobile ? 1 : 'initial'
                         }}
                     >
                         Voltar
@@ -224,7 +249,8 @@ const ReportForm = () => {
                             background: activeStep === steps.length - 1 ? 'var(--color-success)' : 'var(--color-accent-primary)',
                             color: 'white',
                             fontWeight: '600',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            flex: isMobile ? 1 : 'initial'
                         }}
                     >
                         {activeStep === steps.length - 1 ? 'Gerar PDF' : 'Próximo'}

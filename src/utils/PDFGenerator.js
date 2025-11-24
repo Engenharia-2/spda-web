@@ -61,7 +61,7 @@ export const generateReport = async (data) => {
     currentY += 6;
     addKeyValue('Tipo', data.buildingType);
     currentY += 6;
-    addKeyValue('Altura', `${data.height || '-'} m`);
+    addKeyValue('Informações Complementares', data.additionalInfo);
     currentY += 10;
 
     // --- 3. EQUIPAMENTO UTILIZADO ---
@@ -154,9 +154,17 @@ export const generateReport = async (data) => {
 
     currentY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : currentY + 20;
 
-    // --- 6. ANEXOS ---
-    if (data.attachments?.photos?.length > 0) {
-        addSectionTitle('6. ANEXOS');
+    // --- 6. PARECER TÉCNICO ---
+    addSectionTitle('6. PARECER TÉCNICO');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const splitOpinion = doc.splitTextToSize(data.technicalOpinion || 'Sem parecer técnico.', pageWidth - (margin * 2));
+    doc.text(splitOpinion, margin, currentY);
+    currentY += (splitOpinion.length * 5) + 10;
+
+    // --- 7. ANEXOS ---
+    if (data.attachments?.length > 0) {
+        addSectionTitle('7. ANEXOS');
 
         const photoWidth = 80;
         const photoHeight = 60;
@@ -166,14 +174,15 @@ export const generateReport = async (data) => {
         const loadImage = (url) => {
             return new Promise((resolve, reject) => {
                 const img = new Image();
+                img.crossOrigin = 'Anonymous'; // Try to avoid CORS issues
                 img.onload = () => resolve(img);
                 img.onerror = reject;
                 img.src = url;
             });
         };
 
-        for (let i = 0; i < data.attachments.photos.length; i++) {
-            const photo = data.attachments.photos[i];
+        for (let i = 0; i < data.attachments.length; i++) {
+            const photo = data.attachments[i];
 
             if (currentY + photoHeight + 20 > pageHeight - margin) {
                 doc.addPage();
@@ -181,7 +190,11 @@ export const generateReport = async (data) => {
             }
 
             try {
-                const img = await loadImage(photo.preview);
+                // Resolve local-image URLs if needed (though PDF generation usually happens after they are resolved in UI, 
+                // we might need to handle them here if they are raw strings. 
+                // Ideally, the data passed to generateReport should have resolved URLs or we need a helper here.
+                // For now, assuming they are accessible URLs or base64.)
+                const img = await loadImage(photo.url);
                 doc.addImage(img, 'JPEG', xPos, currentY, photoWidth, photoHeight);
 
                 doc.setFontSize(9);
@@ -199,6 +212,52 @@ export const generateReport = async (data) => {
                 console.error('Error loading image for PDF', err);
                 doc.text('[Erro ao carregar imagem]', xPos, currentY + 10);
             }
+        }
+        // Ensure we move down after attachments for the next section
+        if (xPos !== margin) {
+            currentY += photoHeight + 20;
+        }
+    }
+
+    // --- 8. ASSINATURA ---
+    if (data.signature) {
+        // Check if we need a new page
+        if (currentY + 60 > pageHeight - margin) {
+            doc.addPage();
+            currentY = margin;
+        }
+
+        addSectionTitle('8. ASSINATURA');
+
+        try {
+            const loadImage = (url) => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'Anonymous';
+                    img.onload = () => resolve(img);
+                    img.onerror = reject;
+                    img.src = url;
+                });
+            };
+
+            const sigImg = await loadImage(data.signature);
+            // Center the signature
+            const sigWidth = 60;
+            const sigHeight = 30;
+            const xSig = (pageWidth - sigWidth) / 2;
+
+            doc.addImage(sigImg, 'PNG', xSig, currentY, sigWidth, sigHeight);
+            currentY += sigHeight + 5;
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('___________________________________________________', pageWidth / 2, currentY, { align: 'center' });
+            currentY += 5;
+            doc.text(data.engineer || 'Responsável Técnico', pageWidth / 2, currentY, { align: 'center' });
+
+        } catch (err) {
+            console.error('Error loading signature', err);
+            doc.text('[Erro ao carregar assinatura]', margin, currentY + 10);
         }
     }
 

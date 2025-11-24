@@ -52,20 +52,21 @@ const BuildingData = ({ data, updateData }) => {
                     </select>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--color-text-secondary)' }}>Altura Aproximada (m)</label>
-                    <input
-                        type="number"
-                        name="height"
-                        value={data.height || ''}
+                    <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--color-text-secondary)' }}>Informações Complementares</label>
+                    <textarea
+                        name="additionalInfo"
+                        value={data.additionalInfo || ''}
                         onChange={handleChange}
-                        placeholder="Ex: 15"
+                        placeholder="Informações adicionais sobre a edificação..."
                         style={{
                             padding: 'var(--spacing-md)',
                             borderRadius: 'var(--radius-md)',
                             border: '1px solid var(--color-border)',
                             backgroundColor: 'var(--color-bg-primary)',
                             color: 'var(--color-text-primary)',
-                            outline: 'none'
+                            outline: 'none',
+                            resize: 'vertical',
+                            minHeight: '100px'
                         }}
                     />
                 </div>

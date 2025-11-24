@@ -143,7 +143,12 @@ export default Attachments;
 
 // Helper component to resolve local URLs
 const AttachmentItem = ({ attachment, index, onRemove, onDescriptionChange }) => {
-    const [src, setSrc] = useState(attachment.url);
+    const [src, setSrc] = useState(() => {
+        if (attachment.url && attachment.url.startsWith('local-image://')) {
+            return null; // Wait for resolution
+        }
+        return attachment.url;
+    });
 
     React.useEffect(() => {
         const loadSrc = async () => {
@@ -166,16 +171,20 @@ const AttachmentItem = ({ attachment, index, onRemove, onDescriptionChange }) =>
             display: 'flex',
             flexDirection: 'column'
         }}>
-            <div style={{ position: 'relative', height: '150px' }}>
-                <img
-                    src={src}
-                    alt={attachment.name}
-                    style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover'
-                    }}
-                />
+            <div style={{ position: 'relative', height: '150px', backgroundColor: 'var(--color-bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {src ? (
+                    <img
+                        src={src}
+                        alt={attachment.name}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                        }}
+                    />
+                ) : (
+                    <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Carregando...</div>
+                )}
                 <button
                     onClick={onRemove}
                     style={{
