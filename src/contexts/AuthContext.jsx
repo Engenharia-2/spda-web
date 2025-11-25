@@ -28,23 +28,31 @@ export const AuthProvider = ({ children }) => {
             // Create user document with pending status
             console.log('Attempting to create user doc in Firestore...');
 
-            // Create a timeout promise
-            const timeout = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Firestore operation timed out. Check your internet connection or Firebase rules.')), 10000)
+            // Create a timeout promise that resolves (not rejects) to avoid uncaught errors
+            const timeout = new Promise((resolve) =>
+                setTimeout(() => resolve('TIMEOUT'), 5000)
             );
 
             // Race setDoc against timeout
-            await Promise.race([
-                setDoc(doc(db, 'users', user.uid), {
-                    email: user.email,
-                    status: 'pending',
-                    subscription: 'free', // Default plan
-                    createdAt: new Date().toISOString()
-                }),
-                timeout
-            ]);
+            try {
+                const result = await Promise.race([
+                    setDoc(doc(db, 'users', user.uid), {
+                        email: user.email,
+                        status: 'pending',
+                        subscription: 'free', // Default plan
+                        createdAt: new Date().toISOString()
+                    }).then(() => 'SUCCESS'),
+                    timeout
+                ]);
 
-            console.log('User doc created successfully');
+                if (result === 'TIMEOUT') {
+                    console.warn('Firestore user doc creation timed out. Proceeding anyway since Auth user was created.');
+                } else {
+                    console.log('User doc created successfully');
+                }
+            } catch (docError) {
+                console.warn('Firestore user doc creation failed. Proceeding anyway.', docError);
+            }
 
             // Sign out immediately so they don't get auto-logged in
             await signOut(auth);
@@ -69,7 +77,7 @@ export const AuthProvider = ({ children }) => {
 
             // Create a timeout promise
             const timeout = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Firestore operation timed out. Check your internet connection or Firebase rules.')), 10000)
+                setTimeout(() => reject(new Error('Firestore operation timed out. Check your internet connection or Firebase rules.')), 30000)
             );
 
             // Race getDoc against timeout

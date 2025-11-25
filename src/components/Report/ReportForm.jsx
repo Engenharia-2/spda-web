@@ -176,34 +176,71 @@ const ReportForm = () => {
             </div>
 
             {/* Stepper / Tabs */}
-            <div style={{
-                display: 'flex',
-                gap: 'var(--spacing-sm)',
-                marginBottom: 'var(--spacing-xl)',
-                overflowX: 'auto',
-                paddingBottom: 'var(--spacing-sm)',
-                borderBottom: '1px solid var(--color-border)'
-            }}>
-                {steps.map((step, index) => (
-                    <button
-                        key={index}
-                        onClick={() => setActiveStep(index)}
+            {/* Stepper / Tabs */}
+            {isMobile ? (
+                <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+                    <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                        <span>Passo {activeStep + 1} de {steps.length}</span>
+                        <span>{Math.round(((activeStep + 1) / steps.length) * 100)}%</span>
+                    </div>
+                    <div style={{ height: '4px', backgroundColor: 'var(--color-border)', borderRadius: '2px', marginBottom: '1rem', overflow: 'hidden' }}>
+                        <div style={{
+                            height: '100%',
+                            width: `${((activeStep + 1) / steps.length) * 100}%`,
+                            backgroundColor: 'var(--color-accent-primary)',
+                            transition: 'width 0.3s ease'
+                        }} />
+                    </div>
+                    <select
+                        value={activeStep}
+                        onChange={(e) => setActiveStep(Number(e.target.value))}
                         style={{
-                            background: 'transparent',
-                            border: 'none',
-                            padding: 'var(--spacing-sm) var(--spacing-md)',
-                            color: activeStep === index ? 'var(--color-accent-primary)' : 'var(--color-text-muted)',
-                            borderBottom: activeStep === index ? '2px solid var(--color-accent-primary)' : '2px solid transparent',
-                            fontWeight: activeStep === index ? '600' : '400',
-                            whiteSpace: 'nowrap',
-                            transition: 'all 0.2s',
-                            cursor: 'pointer'
+                            width: '100%',
+                            padding: '0.75rem',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--color-border)',
+                            backgroundColor: 'var(--color-bg-secondary)',
+                            color: 'var(--color-text-primary)',
+                            fontSize: '1rem'
                         }}
                     >
-                        {index + 1}. {step}
-                    </button>
-                ))}
-            </div>
+                        {steps.map((step, index) => (
+                            <option key={index} value={index}>
+                                {index + 1}. {step}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            ) : (
+                <div style={{
+                    display: 'flex',
+                    gap: 'var(--spacing-sm)',
+                    marginBottom: 'var(--spacing-xl)',
+                    overflowX: 'auto',
+                    paddingBottom: 'var(--spacing-sm)',
+                    borderBottom: '1px solid var(--color-border)'
+                }}>
+                    {steps.map((step, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setActiveStep(index)}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                padding: 'var(--spacing-sm) var(--spacing-md)',
+                                color: activeStep === index ? 'var(--color-accent-primary)' : 'var(--color-text-muted)',
+                                borderBottom: activeStep === index ? '2px solid var(--color-accent-primary)' : '2px solid transparent',
+                                fontWeight: activeStep === index ? '600' : '400',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.2s',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {index + 1}. {step}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {/* Form Content Area */}
             <div style={{
