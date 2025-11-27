@@ -87,11 +87,10 @@ const Settings = () => {
             return;
         }
 
+        console.log(`[Settings.jsx] Changing storage mode to: ${mode}`);
         setStorageMode(mode);
         localStorage.setItem('storageMode', mode);
-        if (window.confirm('Para aplicar a mudança de armazenamento, a página será recarregada. Continuar?')) {
-            window.location.reload();
-        }
+        alert(`Modo de armazenamento alterado para: ${mode.toUpperCase()}. A mudança será aplicada nas próximas operações.`);
     };
 
     // Sync Logic

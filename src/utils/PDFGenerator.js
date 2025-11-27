@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { StorageService } from '../services/StorageService';
 
 export const generateReport = async (data) => {
     const doc = new jsPDF();
@@ -190,11 +191,14 @@ export const generateReport = async (data) => {
             }
 
             try {
-                // Resolve local-image URLs if needed (though PDF generation usually happens after they are resolved in UI, 
-                // we might need to handle them here if they are raw strings. 
-                // Ideally, the data passed to generateReport should have resolved URLs or we need a helper here.
-                // For now, assuming they are accessible URLs or base64.)
-                const img = await loadImage(photo.url);
+                let imageUrl = photo.url;
+                if (imageUrl && imageUrl.startsWith('local-image://')) {
+                    imageUrl = await StorageService.resolveImageUrl(imageUrl);
+                }
+
+                if (!imageUrl) throw new Error('URL da imagem nula ou inválida após resolução.');
+
+                const img = await loadImage(imageUrl);
                 doc.addImage(img, 'JPEG', xPos, currentY, photoWidth, photoHeight);
 
                 doc.setFontSize(9);
@@ -230,6 +234,13 @@ export const generateReport = async (data) => {
         addSectionTitle('8. ASSINATURA');
 
         try {
+            let signatureUrl = data.signature;
+            if (signatureUrl && signatureUrl.startsWith('local-image://')) {
+                signatureUrl = await StorageService.resolveImageUrl(signatureUrl);
+            }
+
+            if (!signatureUrl) throw new Error('URL da assinatura nula ou inválida após resolução.');
+
             const loadImage = (url) => {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
@@ -240,7 +251,7 @@ export const generateReport = async (data) => {
                 });
             };
 
-            const sigImg = await loadImage(data.signature);
+            const sigImg = await loadImage(signatureUrl);
             // Center the signature
             const sigWidth = 60;
             const sigHeight = 30;

@@ -1,3 +1,4 @@
+import imageCompression from 'browser-image-compression';
 import { db, storage } from './firebase';
 import {
     collection,
@@ -18,7 +19,8 @@ const REPORTS_COLLECTION = 'reports';
 
 // Helper to get current storage mode
 const getStorageMode = () => {
-    return localStorage.getItem('storageMode') || 'cloud'; // default to cloud for now, will change logic later
+    const mode = localStorage.getItem('storageMode');
+    return mode || 'cloud'; // default to cloud for now, will change logic later
 };
 
 export const StorageService = {
@@ -120,39 +122,68 @@ export const StorageService = {
 
     // Upload a file
     uploadImage: async (file, path) => {
-        const mode = getStorageMode();
+        console.log(`[StorageService] uploadImage called for file: ${file.name}`);
+        console.log(`[StorageService] Original image size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
 
-        if (mode === 'local') {
-            return await LocalStorageService.saveImage(file);
+        const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+        };
+
+        let processedFile;
+        try {
+            console.log('[StorageService] Compressing image...');
+            processedFile = await imageCompression(file, options);
+            console.log(`[StorageService] Compressed image size: ${(processedFile.size / 1024 / 1024).toFixed(2)} MB`);
+        } catch (compressionError) {
+            console.error('[StorageService] Error during image compression. Falling back to original file.', compressionError);
+            processedFile = file;
         }
 
-        console.log('Starting upload for:', file.name, 'to path:', path);
+        const mode = getStorageMode();
+        console.log(`[StorageService] Detected storage mode: "${mode}"`);
+
+        if (mode === 'local') {
+            try {
+                console.log('[StorageService] Calling LocalStorageService.saveImage...');
+                const result = await LocalStorageService.saveImage(processedFile);
+                console.log('[StorageService] LocalStorageService.saveImage returned:', result);
+                return result;
+            } catch (localError) {
+                console.error('[StorageService] Error saving image to local storage.', localError);
+                throw localError; // Re-throw the error to be caught by the UI
+            }
+        }
+
+        // Cloud mode
+        console.log('[StorageService] Starting CLOUD upload for:', processedFile.name, 'to path:', path);
         try {
-            const storagePath = path || `uploads/${Date.now()}_${file.name}`;
+            const storagePath = path || `uploads/${Date.now()}_${processedFile.name}`;
             const storageRef = ref(storage, storagePath);
 
-            // Add a timeout to the upload
-            const uploadPromise = uploadBytes(storageRef, file);
+            const uploadPromise = uploadBytes(storageRef, processedFile);
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Upload timed out after 30 seconds')), 30000)
             );
 
+            console.log('[StorageService] Awaiting upload to Firebase...');
             const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
-            console.log('Upload completed, fetching URL...');
+            console.log('[StorageService] CLOUD upload completed, fetching URL...');
 
             const downloadURL = await getDownloadURL(snapshot.ref);
-            console.log('URL fetched:', downloadURL);
+            console.log('[StorageService] CLOUD URL fetched:', downloadURL);
 
             return {
-                name: file.name,
+                name: processedFile.name,
                 url: downloadURL,
                 path: snapshot.ref.fullPath,
-                type: file.type,
-                size: file.size,
+                type: processedFile.type,
+                size: processedFile.size,
                 uploadedAt: new Date().toISOString()
             };
         } catch (error) {
-            console.error('Error uploading file (cloud):', error);
+            console.error('[StorageService] CRITICAL: Error uploading file to CLOUD.', error);
             throw error;
         }
     },

@@ -34,6 +34,7 @@ export const LocalStorageService = {
             };
 
             request.onerror = (event) => {
+                console.error('[LocalStorageService] FATAL: Error opening database.', event.target.error);
                 reject('Error opening database: ' + event.target.error);
             };
         });
@@ -105,6 +106,7 @@ export const LocalStorageService = {
     },
 
     async saveImage(file) {
+        console.log('[LocalStorageService] saveImage called for file:', file.name);
         const db = await this.openDB();
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([STORES.IMAGES], 'readwrite');
@@ -118,33 +120,27 @@ export const LocalStorageService = {
                 blob: file,
                 createdAt: new Date().toISOString()
             };
+            
+            console.log('[LocalStorageService] Preparing to save image record to IndexedDB:', imageRecord);
 
             const request = store.put(imageRecord);
 
             request.onsuccess = () => {
-                // Return a blob URL for immediate display
-                // Note: These URLs are temporary and revoked on page unload usually, 
-                // but for the return value it's fine. The persistent ID is what matters.
-                // However, to mimic Firebase, we return an object with 'url'.
-                // For local storage, the 'url' will be a special identifier we can parse later
-                // or a blob URL we generate on demand.
-                // Let's return a custom scheme or just the ID.
-                // Actually, for simplicity in the UI, let's return a Blob URL now, 
-                // but the UI needs to know how to regenerate it if it expires.
-                // Better approach: Store the ID in the report, and have a component that resolves it.
-                // BUT, to minimize UI changes, let's try to keep the 'url' property working.
-
-                // We will return a local-id scheme: 'local-image://<id>'
-                resolve({
+                const result = {
                     name: file.name,
                     url: `local-image://${id}`,
                     path: `local/${id}`,
                     type: file.type,
                     size: file.size,
                     uploadedAt: imageRecord.createdAt
-                });
+                };
+                console.log('[LocalStorageService] Successfully saved image to IndexedDB. Returning:', result);
+                resolve(result);
             };
-            request.onerror = () => reject(request.error);
+            request.onerror = () => {
+                console.error('[LocalStorageService] CRITICAL: Error saving image to IndexedDB.', request.error);
+                reject(request.error);
+            };
         });
     },
 
