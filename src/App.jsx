@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, createRoutesFromElements, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { ThemeProvider } from './contexts/ThemeContext/ThemeContext';
@@ -16,43 +16,53 @@ import ClientForm from './pages/Clients/ClientForm';
 import Settings from './pages/Settings';
 import UserManagement from './pages/Admin';
 
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <>
+      {/* Public Route */}
+      <Route path="/login" element={<Login />} />
+
+      {/* Private Routes */}
+      <Route
+        element={
+          <LayoutProvider>
+            <ProtectedRoute />
+          </LayoutProvider>
+        }
+      >
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/new-report" element={<ReportsPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/clients" element={<ClientList />} />
+        <Route path="/client-form" element={<ClientForm />} />
+        <Route path="/settings" element={<Settings />} />
+      </Route>
+
+      {/* Admin Routes */}
+      <Route
+        element={
+          <LayoutProvider>
+            <ProtectedRoute role="admin" />
+          </LayoutProvider>
+        }
+      >
+        <Route path="/admin" element={<UserManagement />} />
+      </Route>
+    </>
+  ),
+  {
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    },
+  }
+);
+
 function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <Router>
-          <Routes>
-            {/* Public Route */}
-            <Route path="/login" element={<Login />} />
-
-            {/* Private Routes */}
-            <Route
-              element={
-                <LayoutProvider>
-                  <ProtectedRoute />
-                </LayoutProvider>
-              }
-            >
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/new-report" element={<ReportsPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/clients" element={<ClientList />} />
-              <Route path="/client-form" element={<ClientForm />} />
-              <Route path="/settings" element={<Settings />} />
-            </Route>
-
-            {/* Admin Routes */}
-            <Route
-              element={
-                <LayoutProvider>
-                  <ProtectedRoute role="admin" />
-                </LayoutProvider>
-              }
-            >
-              <Route path="/admin" element={<UserManagement />} />
-            </Route>
-          </Routes>
-        </Router>
+        <RouterProvider router={router} />
       </ThemeProvider>
     </AuthProvider>
   );

@@ -12,7 +12,9 @@ export const useEquipmentSettings = () => {
         setData: setEquipmentData,
         loading,
         saving,
-        handleSave: genericHandleSave
+        isDirty,
+        handleSave: genericHandleSave,
+        confirmSaved
     } = useSetting('equipmentConfig', defaultConfig);
 
     // Migration Logic: If data is an object (legacy), field it into an array
@@ -57,6 +59,8 @@ export const useEquipmentSettings = () => {
         equipmentList,
         loading,
         saving,
+        isDirty,
+        confirmSaved,
         handleAdd,
         handleUpdate,
         handleDelete,

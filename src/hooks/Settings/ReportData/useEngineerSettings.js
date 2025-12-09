@@ -15,7 +15,9 @@ export const useEngineerSettings = () => {
         setData: setEngineerData,
         loading,
         saving,
-        handleSave: genericHandleSave
+        isDirty,
+        handleSave: genericHandleSave,
+        confirmSaved
     } = useSetting('engineerConfig', defaultConfig);
 
     const handleChange = (e) => {
@@ -35,6 +37,8 @@ export const useEngineerSettings = () => {
         engineerData,
         loading,
         saving,
+        isDirty,
+        confirmSaved,
         handleChange,
         handleSignatureChange,
         handleSave

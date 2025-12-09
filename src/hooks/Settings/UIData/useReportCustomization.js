@@ -18,7 +18,9 @@ export const useReportCustomization = () => {
         setData,
         loading,
         saving,
-        handleSave: genericHandleSave
+        isDirty,
+        handleSave: genericHandleSave,
+        confirmSaved
     } = useSetting('reportConfig', defaultConfig);
 
     const updateConfig = (updates) => {
@@ -33,6 +35,8 @@ export const useReportCustomization = () => {
         reportConfig,
         loading,
         saving,
+        isDirty,
+        confirmSaved,
         updateConfig,
         handleSave
     };

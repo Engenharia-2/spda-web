@@ -8,7 +8,9 @@ export const useChecklistSettings = () => {
         setData: setItems,
         loading,
         saving,
+        isDirty,
         handleSave: genericHandleSave,
+        confirmSaved,
     } = useSetting('checklistConfig', SettingsService.getDefaultChecklist());
 
     const [newItemLabel, setNewItemLabel] = useState('');
@@ -49,6 +51,8 @@ export const useChecklistSettings = () => {
         loading,
         newItemLabel,
         saving,
+        isDirty,
+        confirmSaved,
         setNewItemLabel,
         handleToggleActive,
         handleAddItem,

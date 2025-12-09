@@ -15,7 +15,10 @@ export const useReports = () => {
     // States for both list and form
     const [reports, setReports] = useState([]);
     const [formData, setFormData] = useState({});
+    const [initialFormData, setInitialFormData] = useState({});
     const [error, setError] = useState(null);
+
+    const isDirty = JSON.stringify(formData) !== JSON.stringify(initialFormData);
 
     // States for list
     const [listLoading, setListLoading] = useState(true);
@@ -57,6 +60,7 @@ export const useReports = () => {
                     const data = await StorageService.getReport(reportId);
                     if (data) {
                         setFormData(data);
+                        setInitialFormData(data);
                     }
                 } catch (err) {
                     setError('Erro ao carregar o relatório.');
@@ -66,6 +70,9 @@ export const useReports = () => {
                 }
             };
             loadReport();
+        } else {
+            setFormData({});
+            setInitialFormData({});
         }
     }, [reportId, currentUser]);
 
@@ -92,6 +99,7 @@ export const useReports = () => {
             const reportData = { ...formData, status: 'draft' };
             const savedReportId = await StorageService.saveReport(currentUser.uid, reportData, formData.id);
             setFormData(prev => ({ ...prev, id: savedReportId }));
+            setInitialFormData(prev => ({ ...prev, ...reportData, id: savedReportId }));
             alert('Rascunho salvo na nuvem com sucesso!');
         } catch (err) {
             setError('Erro ao salvar rascunho.');
@@ -109,6 +117,7 @@ export const useReports = () => {
                 const reportData = { ...formData, status: 'completed' };
                 const savedReportId = await StorageService.saveReport(currentUser.uid, reportData, formData.id);
                 setFormData(prev => ({ ...prev, id: savedReportId }));
+                setInitialFormData(prev => ({ ...prev, ...reportData, id: savedReportId }));
             }
 
             // Fetch configs
@@ -175,6 +184,7 @@ export const useReports = () => {
         // Form
         formData,
         formLoading,
+        isDirty,
         updateData,
         steps,
         activeStep,
