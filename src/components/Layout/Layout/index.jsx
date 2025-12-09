@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from '../Sidebar/index';
 import Header from '../Header/index';
 import { useLayout } from '../../../contexts/LayoutContext';
+import SACButton from '../SACButton';
 import './styles.css';
 
 const Layout = () => {
@@ -29,6 +30,7 @@ const Layout = () => {
                     <Outlet />
                 </main>
             </div>
+            <SACButton />
         </div>
     );
 };
