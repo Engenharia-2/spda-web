@@ -1,0 +1,52 @@
+.color-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.color-picker-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.color-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    width: fit-content;
+}
+
+/* Hide the native input but keep it clickable over the custom UI or trigger it via label/wrapper click if needed.
+   Actually, a common trick is to make the input opacity 0 and cover the area, or just style it if possible.
+   Here we'll keep it simple: the input is visible but we style around it, or we can use the wrapper to trigger it.
+   Let's try making the input small and invisible but clickable, or just standard.
+   
+   Better approach for custom look: 
+   The input type='color' is hard to style consistently. 
+   We will overlay it or just place it next to the hex code.
+*/
+
+.color-input-native {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: none;
+}
+
+.color-value {
+    font-family: monospace;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    text-transform: uppercase;
+}

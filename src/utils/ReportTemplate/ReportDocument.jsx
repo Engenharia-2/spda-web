@@ -1,0 +1,415 @@
+import React from 'react';
+import { Page, Text, View, Document, StyleSheet, Image, Font } from '@react-pdf/renderer';
+
+// Register Roboto font to support special characters like Ohm (Ω)
+Font.register({
+    family: 'Roboto',
+    fonts: [
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf' },
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf', fontWeight: 'bold' }
+    ]
+});
+
+// Helper to format resistance
+const formatResistance = (val) => {
+    if (val === undefined || val === null || val === '') return '-';
+    const num = parseFloat(val);
+    if (isNaN(num)) return val;
+    if (num < 1 && num !== 0) {
+        return `${(num * 1000).toFixed(3)} mΩ`;
+    }
+    return `${num.toFixed(3)} Ω`;
+};
+
+// Helper to extract date/time
+const extractMeasurementDateTime = (measurements) => {
+    if (!measurements?.parsedData || measurements.parsedData.length === 0) {
+        return { date: 'Não Informado', startTime: 'Não Informado', endTime: 'Não Informado' };
+    }
+    const first = measurements.parsedData[0];
+    const last = measurements.parsedData[measurements.parsedData.length - 1];
+
+    const parse = (str) => {
+        if (!str) return { date: '', time: '' };
+        const parts = str.split(' ');
+        return { date: parts[0] || '', time: parts[1] || '' };
+    };
+
+    const start = parse(first.dataHora);
+    const end = parse(last.dataHora);
+
+    return {
+        date: start.date || 'Não Informado',
+        startTime: start.time || 'Não Informado',
+        endTime: end.time || 'Não Informado'
+    };
+};
+
+const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
+    const measurementDateTime = extractMeasurementDateTime(data.measurements);
+
+    let h2Counter = 0;
+    const incrementH2 = () => { h2Counter++; return h2Counter; };
+
+    let h3Counter = 0;
+    const incrementH3 = () => { h3Counter++; return `${h2Counter}.${h3Counter}`; };
+
+    // Extract colors from config or use defaults
+    const headerBgColor = data.reportConfig?.headerColor || '#ffffff';
+    const headerTextColor = data.reportConfig?.headerTextColor || '#333333';
+    const secondaryColor = data.reportConfig?.secondaryColor || '#e6e6e6';
+    const bodyTextColor = data.reportConfig?.headerTextColor || '#000000'; // Using headerTextColor as general text color if requested, or default black
+
+    // Create dynamic styles based on config
+    const styles = StyleSheet.create({
+        page: {
+            fontFamily: 'Roboto', // Use registered font
+            fontSize: 10,
+            color: '#000000', // Dynamic body text color
+            paddingBottom: 50,
+        },
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderBottomWidth: 1,
+            borderBottomColor: '#eee',
+            marginBottom: 20,
+            height: 80,
+            backgroundColor: headerBgColor, // Dynamic background
+        },
+        headerLeft: {
+            width: '25%',
+        },
+        headerCenter: {
+            width: '50%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: headerTextColor,
+        },
+        headerRight: {
+            width: '25%',
+        },
+        logo: {
+            width: 70,
+            height: 70,
+            objectFit: 'contain',
+            marginLeft: 10,
+
+        },
+        headerTitle: {
+            fontSize: 20,
+            fontWeight: 'bold',
+            textAlign: 'center',
+            color: headerTextColor, // Dynamic text color
+        },
+        section: {
+            marginBottom: 10,
+            padding: 10,
+        },
+        sectionTitle: {
+            fontSize: 12,
+            fontWeight: 'bold',
+            backgroundColor: secondaryColor, // Dynamic secondary color
+            padding: 5,
+            marginBottom: 10,
+            borderRadius: 3,
+            color: headerTextColor, // Dynamic text color
+        },
+        subSectionTitle: {
+            fontSize: 11,
+            fontWeight: 'bold',
+            color: '#555',
+            marginTop: 10,
+            marginBottom: 5,
+        },
+        row: {
+            flexDirection: 'row',
+            marginBottom: 5,
+        },
+        column: {
+            flex: 1,
+            flexDirection: 'column',
+        },
+        label: {
+            fontWeight: 'bold',
+        },
+        value: {
+            marginBottom: 3,
+        },
+        divider: {
+            borderBottomWidth: 1,
+            borderBottomColor: '#eee',
+            marginVertical: 10,
+        },
+        table: {
+            display: 'table',
+            width: 'auto',
+            borderStyle: 'solid',
+            borderWidth: 1,
+            borderRightWidth: 0,
+            borderBottomWidth: 0,
+            marginTop: 10,
+        },
+        tableRow: {
+            margin: 'auto',
+            flexDirection: 'row',
+        },
+        tableCol: {
+            width: '25%',
+            borderStyle: 'solid',
+            borderWidth: 1,
+            borderLeftWidth: 0,
+            borderTopWidth: 0,
+        },
+        tableCell: {
+            margin: 'auto',
+            marginTop: 5,
+            marginBottom: 5,
+            fontSize: 9,
+            textAlign: 'center',
+        },
+        tableHeader: {
+            backgroundColor: '#f0f0f0',
+            fontWeight: 'bold',
+        },
+        checklistRow: {
+            flexDirection: 'row',
+            marginBottom: 3,
+        },
+        checklistIcon: {
+            width: 15,
+            textAlign: 'center',
+            marginRight: 5,
+        },
+        imageGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 10,
+            marginTop: 10,
+        },
+        imageBlock: {
+            width: '48%', // 2 columns
+            marginBottom: 10,
+            alignItems: 'center',
+        },
+        reportImage: {
+            width: '100%',
+            height: 200,
+            objectFit: 'cover',
+            borderRadius: 5,
+        },
+        imageDescription: {
+            fontSize: 9,
+            color: '#555',
+            marginTop: 5,
+            textAlign: 'center',
+        },
+        signatureBlock: {
+            marginTop: 20,
+            alignItems: 'center',
+        },
+        signatureImage: {
+            width: 150,
+            height: 60,
+            objectFit: 'contain',
+        },
+        footer: {
+            position: 'absolute',
+            bottom: 30,
+            left: 30,
+            right: 30,
+            textAlign: 'center',
+            fontSize: 8,
+            color: '#aaa',
+            borderTopWidth: 1,
+            borderTopColor: '#eee',
+            paddingTop: 10,
+            marginTop: 20,
+        },
+    });
+
+    // Header component to be repeated
+    const Header = () => (
+        <View style={styles.header} fixed>
+            <View style={styles.headerLeft}>
+                {data.reportConfig?.logo ? (
+                    <Image src={data.reportConfig.logo} style={styles.logo} />
+                ) : (
+                    <Image src="/logoLHF.png" style={styles.logo} />
+                )}
+            </View>
+            <View style={styles.headerCenter}>
+                <Text style={styles.headerTitle}>
+                    {data.reportConfig?.reportTitle || 'Relatório de Inspeção SPDA'}
+                </Text>
+            </View>
+            <View style={styles.headerRight} />
+        </View>
+    );
+
+    return (
+        <Document>
+            <Page size="A4" style={styles.page}>
+                <Header />
+                {/* 1. Informações Iniciais */}
+                <View style={styles.section} wrap={false}>
+                    <Text style={styles.sectionTitle}>{incrementH2()} - Informações iniciais:</Text>
+                    <View style={styles.row}>
+                        <View style={styles.column}>
+                            <Text style={styles.value}><Text style={styles.label}>Cliente: </Text>{data.client || 'Não Informado'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Técnico Executor: </Text>{data.engineer || 'Não Informado'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Prestador: </Text>{data.provider || 'LHF Sistemas'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Representante: </Text>{data.clientRep || 'Não Informado'}</Text>
+                        </View>
+                        <View style={styles.column}>
+                            <Text style={styles.value}><Text style={styles.label}>Data: </Text>{measurementDateTime.date}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Início: </Text>{measurementDateTime.startTime}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Fim: </Text>{measurementDateTime.endTime}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.divider} />
+                </View>
+
+                {/* 2. Dados da Edificação */}
+                <View style={styles.section} wrap={false}>
+                    <Text style={styles.sectionTitle}>{incrementH2()} - Dados da Edificação:</Text>
+                    <View style={styles.row}>
+                        <View style={styles.column}>
+                            <Text style={styles.value}><Text style={styles.label}>Tipo: </Text>{data.buildingType || 'Não Informado'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Endereço: </Text>{data.address || 'Não Informado'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Info Comp.: </Text>{data.additionalInfo || 'Não Informado'}</Text>
+                        </View>
+                        <View style={styles.column}>
+                            <Text style={styles.value}><Text style={styles.label}>Altura (m): </Text>{data.height || 'Não Informado'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Área (m²): </Text>{data.area || 'Não Informado'}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.divider} />
+                </View>
+
+                {/* 3. Dados do Equipamento */}
+                <View style={styles.section} wrap={false}>
+                    <Text style={styles.sectionTitle}>{incrementH2()} - Dados do Equipamento:</Text>
+                    <View style={styles.row}>
+                        <View style={styles.column}>
+                            <Text style={styles.value}><Text style={styles.label}>Equipamento: </Text>{data.equipmentName || 'Não Informado'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Nº de Série: </Text>{data.serialNumber || 'Não Informado'}</Text>
+                        </View>
+                        <View style={styles.column}>
+                            <Text style={styles.value}><Text style={styles.label}>Calibração: </Text>{data.calibrationDate || 'Não Informado'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Validade: </Text>{data.calibrationValidity || 'Não Informado'}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.divider} />
+                </View>
+
+                {/* 4. Inspeção e Verificação */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{incrementH2()} - Inspeção e Verificação:</Text>
+
+                    <Text style={styles.subSectionTitle}>{incrementH3()} - Checklist de Conformidade:</Text>
+                    {Object.entries(data.checklist || {}).map(([key, value]) => {
+                        const defaultLabels = {
+                            captores: 'Captores',
+                            descidas: 'Descidas',
+                            aneis: 'Anéis de Cintamento',
+                            malha: 'Malha de Aterramento',
+                            bep: 'BEP (Barramento)',
+                            dps: 'DPS',
+                            conexoes: 'Conexões',
+                            sinalizacao: 'Sinalização'
+                        };
+                        let label = defaultLabels[key];
+                        if (!label && data.checklistConfig) {
+                            const configItem = data.checklistConfig.find(item => item.id === key);
+                            if (configItem) label = configItem.label;
+                        }
+                        if (!label) label = key;
+
+                        const statusLabel = value.status === 'C' ? 'Conforme' : value.status === 'NC' ? 'Não Conforme' : 'Não Aplicável';
+                        const icon = value.status === 'C' ? '+' : value.status === 'NC' ? 'x' : '-'; // Simple chars for now
+
+                        return (
+                            <View key={key} style={styles.checklistRow} wrap={false}>
+                                <Text style={styles.checklistIcon}>[{icon}]</Text>
+                                <Text style={{ flex: 1 }}>
+                                    <Text style={styles.label}>{label}: </Text>
+                                    {statusLabel}
+                                    {value.observation ? ` - ${value.observation}` : ''}
+                                </Text>
+                            </View>
+                        );
+                    })}
+                    <View style={styles.divider} />
+                </View>
+
+                {/* 5. Dados de Resistência */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{incrementH2()} - Dados de Resistência e Corrente:</Text>
+                    {(data.measurements?.parsedData || []).length > 0 ? (
+                        <View style={styles.table}>
+                            <View style={[styles.tableRow, styles.tableHeader]} fixed>
+                                <View style={styles.tableCol}><Text style={styles.tableCell}>Grupo</Text></View>
+                                <View style={styles.tableCol}><Text style={styles.tableCell}>Ponto</Text></View>
+                                <View style={styles.tableCol}><Text style={styles.tableCell}>Resistência</Text></View>
+                                <View style={styles.tableCol}><Text style={styles.tableCell}>Corrente (A)</Text></View>
+                            </View>
+                            {data.measurements.parsedData.map((m, index) => (
+                                <View key={index} style={styles.tableRow} wrap={false}>
+                                    <View style={styles.tableCol}><Text style={styles.tableCell}>{m.grupo || '-'}</Text></View>
+                                    <View style={styles.tableCol}><Text style={styles.tableCell}>{m.ponto || '-'}</Text></View>
+                                    <View style={styles.tableCol}><Text style={styles.tableCell}>{formatResistance(m.resistencia)}</Text></View>
+                                    <View style={styles.tableCol}><Text style={styles.tableCell}>{m.corrente || '-'}</Text></View>
+                                </View>
+                            ))}
+                        </View>
+                    ) : (
+                        <Text>Nenhum dado de resistência coletado.</Text>
+                    )}
+                </View>
+
+                {/* 6. Conclusão */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{incrementH2()} - Conclusão:</Text>
+
+                    <Text style={styles.subSectionTitle}>{incrementH3()} - Parecer Técnico:</Text>
+                    <Text style={{ textAlign: 'justify', marginBottom: 10 }}>
+                        {data.technicalOpinion || 'Não Informado'}
+                    </Text>
+                    <View style={styles.divider} />
+
+                    <View style={styles.section} wrap={false}>
+                        <Text style={styles.subSectionTitle}>{incrementH3()} - Responsável técnico:</Text>
+                        <Text>{data.engineer || 'Não Informado'}</Text>
+                        {resolvedSignature && (
+                            <View style={styles.signatureBlock}>
+                                <Image src={resolvedSignature} style={styles.signatureImage} />
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                {/* 7. Anexos */}
+                {resolvedAttachments.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Anexos:</Text>
+                        <View style={styles.imageGrid}>
+                            {resolvedAttachments.map((img, index) => (
+                                <View key={index} style={styles.imageBlock} wrap={false}>
+                                    <Image src={img.url} style={styles.reportImage} />
+                                    <Text style={styles.imageDescription}>Figura {index + 1}. {img.description || 'Sem Descrição'}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
+
+                <Text style={styles.footer} fixed>
+                    Gerado pelo App LDM-Mobile (Web Version)
+                </Text>
+            </Page>
+        </Document>
+    );
+};
+
+export default ReportDocument;

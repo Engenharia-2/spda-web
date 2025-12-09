@@ -1,0 +1,140 @@
+.checklist-loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-text-muted);
+}
+
+.checklist-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.checklist-item {
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-primary);
+}
+
+.checklist-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.checklist-item-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.status-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.status-button {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background-color: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.status-button.selected-c {
+    background-color: var(--color-success);
+    color: white;
+}
+
+.status-button.selected-nc {
+    background-color: var(--color-error);
+    color: white;
+}
+
+.status-button.selected-na {
+    background-color: var(--color-text-muted);
+    color: white;
+}
+
+.checklist-item-content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-md);
+    align-items: start;
+}
+
+.checklist-item-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.checklist-item-obs {
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    outline: none;
+    font-size: 0.875rem;
+    width: 100%;
+}
+
+.photos-container {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.add-photo-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--color-border);
+    background-color: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.add-photo-button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.checklist-photo-container {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.checklist-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+.remove-photo-button {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--color-error);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    cursor: pointer;
+}

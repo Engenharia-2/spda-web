@@ -1,0 +1,122 @@
+.report-customization-container {
+    background-color: var(--color-bg-secondary);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    margin-bottom: var(--spacing-xl);
+}
+
+.customization-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.logo-upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: flex-start;
+}
+
+.logo-preview-container {
+    width: 200px;
+    height: 100px;
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: var(--color-bg-primary);
+    position: relative;
+}
+
+.logo-preview {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.no-logo-text {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+}
+
+.upload-controls {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.upload-btn-label {
+    padding: 0.5rem 1rem;
+    background-color: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    transition: background-color 0.2s;
+}
+
+.upload-btn-label:hover {
+    background-color: var(--color-border);
+}
+
+.remove-logo-btn {
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.remove-logo-btn:hover {
+    background-color: rgba(220, 38, 38, 0.1);
+}
+
+.save-customization-btn {
+    align-self: flex-start;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--color-accent-primary);
+    color: var(--color-text-on-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.save-customization-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.file-input {
+    display: none;
+}
+
+.colors-section {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border);
+}
+
+.subsection-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 16px;
+}
+
+.colors-grid {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}

@@ -1,0 +1,55 @@
+.settings-section {
+    background-color: var(--color-bg-secondary);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    margin-bottom: var(--spacing-xl);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+}
+
+.section-description {
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-md);
+}
+
+.storage-options {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.storage-option-button {
+    flex: 1;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-primary);
+    cursor: pointer;
+    text-align: left;
+    position: relative;
+}
+
+.storage-option-button.selected {
+    border: 2px solid var(--color-accent-primary);
+    background-color: rgba(37, 99, 235, 0.1);
+}
+
+.storage-option-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.storage-option-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--color-text-primary);
+}
+
+.storage-option-description {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}

@@ -11,4 +11,15 @@ export default defineConfig({
   optimizeDeps: {
     include: ['jspdf', 'jspdf-autotable'],
   },
+  resolve: {
+    alias: {
+      // This maps 'buffer' imports to the 'buffer' package
+      buffer: 'buffer/',
+    },
+  },
+  define: {
+    // This makes 'global' and 'process.env.NODE_ENV' available
+    global: 'globalThis', // Use globalThis for browser compatibility
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+  },
 })

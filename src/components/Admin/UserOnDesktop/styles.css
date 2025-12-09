@@ -1,0 +1,65 @@
+/* Desktop Table Row Styles */
+.tr {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.td {
+    padding: 1rem;
+}
+
+.current-user-tag {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-badge.approved {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+}
+
+.status-badge.pending {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--color-warning);
+}
+
+.desktop-select {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+}
+
+.desktop-select.admin {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--color-accent-primary);
+    font-weight: 600;
+}
+
+.desktop-btn {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.desktop-btn-approve {
+    border: none;
+    background-color: var(--color-success);
+    color: white;
+    margin-right: 0.5rem;
+}
+
+.desktop-btn-suspend {
+    border: 1px solid var(--color-border);
+    background-color: transparent;
+    color: var(--color-text-muted);
+}

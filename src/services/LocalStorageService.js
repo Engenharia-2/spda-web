@@ -158,12 +158,21 @@ export const LocalStorageService = {
 
     // Helper to convert local-image:// URL to Blob URL
     async resolveImageUrl(url) {
-        if (!url || !url.startsWith('local-image://')) return url;
+        console.log(`[LocalStorageService] resolveImageUrl called with URL: ${url}`);
+        if (!url || !url.startsWith('local-image://')) {
+            console.warn('[LocalStorageService] URL is invalid or not a local-image scheme.');
+            return url;
+        }
         const id = url.split('local-image://')[1];
+        console.log(`[LocalStorageService] Attempting to get image with ID: ${id}`);
         const record = await this.getImage(id);
         if (record && record.blob) {
-            return URL.createObjectURL(record.blob);
+            console.log(`[LocalStorageService] Found image record for ID ${id}. Creating blob URL.`);
+            const blobUrl = URL.createObjectURL(record.blob);
+            console.log(`[LocalStorageService] Created blob URL: ${blobUrl}`);
+            return blobUrl;
         }
+        console.error(`[LocalStorageService] CRITICAL: No image record or blob found for ID ${id}.`);
         return null;
     }
 };

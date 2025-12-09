@@ -20,7 +20,9 @@ const REPORTS_COLLECTION = 'reports';
 // Helper to get current storage mode
 const getStorageMode = () => {
     const mode = localStorage.getItem('storageMode');
-    return mode || 'cloud'; // default to cloud for now, will change logic later
+    const finalMode = mode || 'cloud'; // default to cloud for now, will change logic later
+    console.log(`[StorageService] getStorageMode: Detected mode is "${finalMode}".`);
+    return finalMode;
 };
 
 export const StorageService = {
@@ -190,9 +192,12 @@ export const StorageService = {
 
     // Helper to resolve image URLs (needed for local blobs)
     resolveImageUrl: async (url) => {
+        console.log(`[StorageService] resolveImageUrl called with URL: ${url}`);
         if (url && url.startsWith('local-image://')) {
+            console.log('[StorageService] Detected local-image scheme, delegating to LocalStorageService.');
             return await LocalStorageService.resolveImageUrl(url);
         }
+        console.log('[StorageService] URL is not a local-image scheme, returning original URL.');
         return url;
     }
 };

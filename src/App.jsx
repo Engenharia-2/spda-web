@@ -1,79 +1,59 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Layout from './components/Layout/Layout';
-import Dashboard from './components/Dashboard/Dashboard';
-import ReportForm from './components/Report/ReportForm';
-import ReportList from './components/Report/ReportList';
-import ClientList from './components/Clients/ClientList';
-import ClientForm from './components/Clients/ClientForm';
-import Settings from './components/Settings/Settings';
-import AdminRoute from './components/Auth/AdminRoute';
-import UserManagement from './components/Admin/UserManagement';
-import Login from './components/Auth/Login';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { LayoutProvider } from './contexts/LayoutContext';
+import { ThemeProvider } from './contexts/ThemeContext/ThemeContext';
 
-const PrivateRoute = ({ children }) => {
-  const { currentUser } = useAuth();
-  return currentUser ? children : <Navigate to="/login" />;
-};
+// Layouts
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+
+// Pages
+import Login from './pages/Auth/Login';
+import Dashboard from './pages/Dashboard';
+import ReportsPage from './pages/Reports';
+import ClientList from './pages/Clients/ClientList';
+import ClientForm from './pages/Clients/ClientForm';
+import Settings from './pages/Settings';
+import UserManagement from './pages/Admin';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={
-            <PrivateRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/new-report" element={
-            <PrivateRoute>
-              <Layout>
-                <ReportForm />
-              </Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/reports" element={
-            <PrivateRoute>
-              <Layout>
-                <ReportList />
-              </Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/clients" element={
-            <PrivateRoute>
-              <Layout>
-                <ClientList />
-              </Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/client-form" element={
-            <PrivateRoute>
-              <Layout>
-                <ClientForm />
-              </Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/settings" element={
-            <PrivateRoute>
-              <Layout>
-                <Settings />
-              </Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/admin" element={
-            <AdminRoute>
-              <Layout>
-                <UserManagement />
-              </Layout>
-            </AdminRoute>
-          } />
-        </Routes>
-      </Router>
+      <ThemeProvider>
+        <Router>
+          <Routes>
+            {/* Public Route */}
+            <Route path="/login" element={<Login />} />
+
+            {/* Private Routes */}
+            <Route
+              element={
+                <LayoutProvider>
+                  <ProtectedRoute />
+                </LayoutProvider>
+              }
+            >
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/new-report" element={<ReportsPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/clients" element={<ClientList />} />
+              <Route path="/client-form" element={<ClientForm />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+
+            {/* Admin Routes */}
+            <Route
+              element={
+                <LayoutProvider>
+                  <ProtectedRoute role="admin" />
+                </LayoutProvider>
+              }
+            >
+              <Route path="/admin" element={<UserManagement />} />
+            </Route>
+          </Routes>
+        </Router>
+      </ThemeProvider>
     </AuthProvider>
   );
 }
