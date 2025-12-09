@@ -1,5 +1,5 @@
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Image, Font } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, Image, Font, Svg, Path } from '@react-pdf/renderer';
 
 // Register Roboto font to support special characters like Ohm (Ω)
 Font.register({
@@ -16,9 +16,9 @@ const formatResistance = (val) => {
     const num = parseFloat(val);
     if (isNaN(num)) return val;
     if (num < 1 && num !== 0) {
-        return `${(num * 1000).toFixed(3)} mΩ`;
+        return `${(num * 1000).toFixed(3)} m`;
     }
-    return `${num.toFixed(3)} Ω`;
+    return `${num.toFixed(3)}`;
 };
 
 // Helper to extract date/time
@@ -153,6 +153,7 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
         tableRow: {
             margin: 'auto',
             flexDirection: 'row',
+
         },
         tableCol: {
             width: '25%',
@@ -160,13 +161,13 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
             borderWidth: 1,
             borderLeftWidth: 0,
             borderTopWidth: 0,
+            alignItems: 'center',
         },
         tableCell: {
             margin: 'auto',
             marginTop: 5,
             marginBottom: 5,
             fontSize: 9,
-            textAlign: 'center',
         },
         tableHeader: {
             backgroundColor: '#f0f0f0',
@@ -179,7 +180,7 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
         checklistIcon: {
             width: 15,
             textAlign: 'center',
-            marginRight: 5,
+            marginLeft: 5,
         },
         imageGrid: {
             flexDirection: 'row',
@@ -245,6 +246,24 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
             </View>
             <View style={styles.headerRight} />
         </View>
+    );
+
+    const CheckIcon = () => (
+        <Svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <Path d="M20 6L9 17l-5-5" fill="none" />
+        </Svg>
+    );
+
+    const CrossIcon = () => (
+        <Svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F44336" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <Path d="M18 6L6 18M6 6l12 12" fill="none" />
+        </Svg>
+    );
+
+    const DashIcon = () => (
+        <Svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <Path d="M5 12h14" fill="none" />
+        </Svg>
     );
 
     return (
@@ -326,17 +345,17 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                         }
                         if (!label) label = key;
 
-                        const statusLabel = value.status === 'C' ? 'Conforme' : value.status === 'NC' ? 'Não Conforme' : 'Não Aplicável';
-                        const icon = value.status === 'C' ? '+' : value.status === 'NC' ? 'x' : '-'; // Simple chars for now
+                        const StatusIcon = value.status === 'C' ? CheckIcon : value.status === 'NC' ? CrossIcon : DashIcon;
 
                         return (
                             <View key={key} style={styles.checklistRow} wrap={false}>
-                                <Text style={styles.checklistIcon}>[{icon}]</Text>
-                                <Text style={{ flex: 1 }}>
-                                    <Text style={styles.label}>{label}: </Text>
-                                    {statusLabel}
+                                <Text>
+                                    <Text style={styles.label}>{label}</Text>
                                     {value.observation ? ` - ${value.observation}` : ''}
                                 </Text>
+                                <View style={styles.checklistIcon}>
+                                    <StatusIcon />
+                                </View>
                             </View>
                         );
                     })}
@@ -351,7 +370,7 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                             <View style={[styles.tableRow, styles.tableHeader]} fixed>
                                 <View style={styles.tableCol}><Text style={styles.tableCell}>Grupo</Text></View>
                                 <View style={styles.tableCol}><Text style={styles.tableCell}>Ponto</Text></View>
-                                <View style={styles.tableCol}><Text style={styles.tableCell}>Resistência</Text></View>
+                                <View style={styles.tableCol}><Text style={styles.tableCell}>Resistência(Ω)</Text></View>
                                 <View style={styles.tableCol}><Text style={styles.tableCell}>Corrente (A)</Text></View>
                             </View>
                             {data.measurements.parsedData.map((m, index) => (
