@@ -40,11 +40,9 @@ const ChecklistConfiguration = ({
                             <span className="checklist-item-label">{item.label}</span>
                             {item.isDefault && <span className="default-badge">Padrão</span>}
                         </div>
-                        {!item.isDefault && (
-                            <button onClick={() => onDeleteItem(item.id)} className="delete-item-button" title="Remover item">
-                                🗑️
-                            </button>
-                        )}
+                        <button onClick={() => onDeleteItem(item.id)} className="delete-item-button" title="Remover item">
+                            🗑️
+                        </button>
                     </div>
                 ))}
             </div>

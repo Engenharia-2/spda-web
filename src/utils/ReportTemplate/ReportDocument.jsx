@@ -338,12 +338,18 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                             conexoes: 'Conexões',
                             sinalizacao: 'Sinalização'
                         };
-                        let label = defaultLabels[key];
-                        if (!label && data.checklistConfig) {
-                            const configItem = data.checklistConfig.find(item => item.id === key);
-                            if (configItem) label = configItem.label;
+
+                        const isDefault = Object.prototype.hasOwnProperty.call(defaultLabels, key);
+                        const configItem = data.checklistConfig?.find(item => item.id === key);
+
+                        // If NOT default AND NOT in config, it is orphaned -> Skip
+                        if (!isDefault && !configItem) {
+                            return null;
                         }
-                        if (!label) label = key;
+
+                        const label = isDefault ? defaultLabels[key] : configItem?.label;
+
+                        if (!label) return null;
 
                         const StatusIcon = value.status === 'C' ? CheckIcon : value.status === 'NC' ? CrossIcon : DashIcon;
 
