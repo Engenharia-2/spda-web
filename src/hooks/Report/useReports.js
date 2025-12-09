@@ -112,16 +112,24 @@ export const useReports = () => {
             }
 
             // Fetch configs
-            const [checklistConfig, reportConfig, equipmentConfig, engineerConfig] = await Promise.all([
+            const [checklistConfig, reportConfig, equipmentConfigRaw, engineerConfig] = await Promise.all([
                 SettingsService.getSetting(currentUser.uid, 'checklistConfig'),
                 SettingsService.getSetting(currentUser.uid, 'reportConfig'),
                 SettingsService.getSetting(currentUser.uid, 'equipmentConfig'),
                 SettingsService.getSetting(currentUser.uid, 'engineerConfig')
             ]);
 
+            // Resolve selected equipment (Default or First)
+            let selectedEquipment = {};
+            if (Array.isArray(equipmentConfigRaw) && equipmentConfigRaw.length > 0) {
+                selectedEquipment = equipmentConfigRaw.find(eq => eq.isDefault) || equipmentConfigRaw[0];
+            } else if (equipmentConfigRaw && typeof equipmentConfigRaw === 'object') {
+                selectedEquipment = equipmentConfigRaw; // Legacy fallback
+            }
+
             const reportDataForPDF = {
                 ...formData,
-                ...(equipmentConfig || {}),
+                ...selectedEquipment, // Flatten selected equipment data
                 ...(engineerConfig || {}),
                 checklistConfig: checklistConfig || SettingsService.getDefaultChecklist(),
                 reportConfig

@@ -44,7 +44,7 @@ const Settings = () => {
                 SettingsService.saveSetting(currentUser.uid, 'checklistConfig', items),
                 SettingsService.saveSetting(currentUser.uid, 'reportConfig', reportCustomizationHook.reportConfig),
                 SettingsService.saveSetting(currentUser.uid, 'engineerConfig', engineerSettingsHook.engineerData),
-                SettingsService.saveSetting(currentUser.uid, 'equipmentConfig', equipmentSettingsHook.equipmentData)
+                SettingsService.saveSetting(currentUser.uid, 'equipmentConfig', equipmentSettingsHook.equipmentList)
             ]);
             alert('Todas as configurações foram salvas com sucesso!');
         } catch (error) {
