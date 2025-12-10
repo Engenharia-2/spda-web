@@ -3,6 +3,11 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     signOut,
+    sendPasswordResetEmail,
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider,
+    deleteUser,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { withTimeout } from '../utils/asyncUtils';
@@ -34,15 +39,19 @@ const signup = async (email, password) => {
         console.log('Attempting to create user doc in Firestore...');
         try {
             const userDocPromise = _createUserDocument(user.uid, user.email);
-
-            // Usando withTimeout com um tempo mais curto para o signup, mas sem rejeitar o fluxo principal.
-            await withTimeout(userDocPromise, 5000);
+            // Increased timeout to 15s to be safer
+            await withTimeout(userDocPromise, 15000);
             console.log('User doc created successfully');
-
         } catch (error) {
-            // Se o timeout ocorrer, apenas avisamos no console, mas não impedimos o processo de signup.
-            // O usuário foi criado no Auth, que é o mais importante neste fluxo.
-            console.warn('Firestore user doc creation may have failed or timed out. Proceeding anyway.', error);
+            console.error('Firestore user doc creation failed. Rolling back Auth user...', error);
+            // Critical: If Firestore doc fails, we must delete the Auth user to prevent 'ghost' accounts.
+            try {
+                await deleteUser(user);
+                console.log('Auth user rolled back successfully.');
+            } catch (rollbackError) {
+                console.error('CRITICAL: Failed to rollback Auth user after Firestore error!', rollbackError);
+            }
+            throw new Error('Falha ao criar dados do usuário. Tente novamente.');
         }
 
         await signOut(auth); // Deslogar após o cadastro para forçar o login
@@ -110,8 +119,29 @@ const logout = () => {
     return signOut(auth);
 };
 
+const resetPassword = (email) => {
+    return sendPasswordResetEmail(auth, email);
+};
+
+const updateUserPassword = (newPassword) => {
+    const user = auth.currentUser;
+    if (!user) throw new Error('No user logged in');
+    return updatePassword(user, newPassword);
+};
+
+const reauthenticate = (currentPassword) => {
+    const user = auth.currentUser;
+    if (!user) throw new Error('No user logged in');
+
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    return reauthenticateWithCredential(user, credential);
+};
+
 export const AuthService = {
     signup,
     login,
     logout,
+    resetPassword,
+    updateUserPassword,
+    reauthenticate,
 };

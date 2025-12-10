@@ -15,9 +15,11 @@ import ChecklistConfiguration from '../../components/Settings/ChecklistConfigura
 import EngineerSettings from '../../components/Settings/EngineerSettings';
 import EquipmentSettings from '../../components/Settings/EquipmentSettings';
 import ReportCustomization from '../../components/Settings/ReportCustomization';
+import AccountSettings from '../../components/Settings/AccountSettings';
 import './styles.css';
 
 const Settings = () => {
+    const [activeTab, setActiveTab] = React.useState('account'); // 'account' or 'report'
     const { currentUser } = useAuth();
     const checklistHook = useChecklistSettings();
     const {
@@ -108,54 +110,84 @@ const Settings = () => {
 
     return (
         <div className="settings-container">
-            {/* ... header ... */}
+            {/* Header with tabs */}
             <div className="settings-header">
                 <div>
                     <h1 className="settings-title">Configurações</h1>
                     <p className="settings-description">
-                        Personalize o checklist e outras opções.
-                        {isDirty && <span style={{ color: 'orange', marginLeft: '10px' }}>(Alterações não salvas)</span>}
+                        {activeTab === 'account'
+                            ? 'Gerencie sua conta e preferências de armazenamento.'
+                            : 'Personalize os dados e aparência dos seus relatórios.'}
+                        {isDirty && activeTab === 'report' && <span style={{ color: 'orange', marginLeft: '10px' }}>(Alterações não salvas)</span>}
                     </p>
                 </div>
-                <button onClick={handleSaveAll} disabled={checklistSaving} className="save-button">
-                    {checklistSaving ? 'Salvando...' : 'Salvar Alterações'}
+                {activeTab === 'report' && (
+                    <button onClick={handleSaveAll} disabled={checklistSaving} className="save-button">
+                        {checklistSaving ? 'Salvando...' : 'Salvar Alterações'}
+                    </button>
+                )}
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="settings-tabs">
+                <button
+                    className={`tab-button ${activeTab === 'account' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('account')}
+                >
+                    👤 Conta
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'report' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('report')}
+                >
+                    📄 Relatório
                 </button>
             </div>
 
-            {/* Same components as before */}
-            <SubscriptionPlan
-                subscription={currentUser?.subscription}
-                onUpgrade={handleUpgrade}
-            />
+            {/* Account Tab Components */}
+            {activeTab === 'account' && (
+                <>
+                    <SubscriptionPlan
+                        subscription={currentUser?.subscription}
+                        onUpgrade={handleUpgrade}
+                    />
 
-            <StorageSettings
-                storageMode={storageMode}
-                onStorageModeChange={handleStorageModeChange}
-                isFreePlan={isFreePlan}
-            />
+                    <StorageSettings
+                        storageMode={storageMode}
+                        onStorageModeChange={handleStorageModeChange}
+                        isFreePlan={isFreePlan}
+                    />
 
-            <DataSync
-                syncing={syncing}
-                syncProgress={syncProgress}
-                onSyncLocalToCloud={handleSyncLocalToCloud}
-                onSyncCloudToLocal={handleSyncCloudToLocal}
-                isFreePlan={isFreePlan}
-            />
+                    <DataSync
+                        syncing={syncing}
+                        syncProgress={syncProgress}
+                        onSyncLocalToCloud={handleSyncLocalToCloud}
+                        onSyncCloudToLocal={handleSyncCloudToLocal}
+                        isFreePlan={isFreePlan}
+                    />
+                    <AccountSettings />
+                </>
+            )}
 
-            <ChecklistConfiguration
-                items={items}
-                newItemLabel={newItemLabel}
-                onNewItemLabelChange={setNewItemLabel}
-                onToggleActive={handleToggleActive}
-                onAddItem={handleAddItem}
-                onDeleteItem={handleDeleteItem}
-            />
+            {/* Report Tab Components */}
+            {activeTab === 'report' && (
+                <>
+                    <ChecklistConfiguration
+                        items={items}
+                        newItemLabel={newItemLabel}
+                        onNewItemLabelChange={setNewItemLabel}
+                        onToggleActive={handleToggleActive}
+                        onAddItem={handleAddItem}
+                        onDeleteItem={handleDeleteItem}
+                    />
 
-            <EngineerSettings hookData={engineerSettingsHook} />
+                    <EngineerSettings hookData={engineerSettingsHook} />
 
-            <EquipmentSettings hookData={equipmentSettingsHook} />
+                    <EquipmentSettings hookData={equipmentSettingsHook} />
 
-            <ReportCustomization hookData={reportCustomizationHook} />
+                    <ReportCustomization hookData={reportCustomizationHook} />
+                </>
+            )}
         </div>
     );
 };

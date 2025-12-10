@@ -24,7 +24,7 @@ const EquipmentList = ({
                         Gerencie os equipamentos. O item com a <span style={{ color: '#FFD700' }}>★</span> será usado nos relatórios.
                     </p>
                 </div>
-                <button onClick={onAdd} className="add-button">+ Adicionar</button>
+                <button onClick={onAdd} className="add-button">Adicionar</button>
             </div>
 
             {equipmentList.length === 0 ? (

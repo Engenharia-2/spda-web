@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { AuthService } from '../../services/AuthService';
 
 export const useAuthForm = () => {
     const [email, setEmail] = useState('');
@@ -8,7 +9,7 @@ export const useAuthForm = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [isLogin, setIsLogin] = useState(true);
-    
+
     const { login, signup } = useAuth();
     const navigate = useNavigate();
 
@@ -50,15 +51,37 @@ export const useAuthForm = () => {
         }
     };
 
+    const handleResetPassword = async (resetEmail) => {
+        try {
+            setError('');
+            setLoading(true);
+            await AuthService.resetPassword(resetEmail);
+            alert('Email de recuperação enviado! Verifique sua caixa de entrada.');
+            return true;
+        } catch (err) {
+            console.error(err);
+            if (err.code === 'auth/user-not-found') {
+                setError('Email não encontrado.');
+            } else {
+                setError('Falha ao enviar email de recuperação: ' + err.message);
+            }
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         email,
         setEmail,
         password,
         setPassword,
         error,
+        setError, // Exposing setError to clear it manually if needed
         loading,
         isLogin,
         setIsLogin,
         handleSubmit,
+        handleResetPassword,
     };
 };
