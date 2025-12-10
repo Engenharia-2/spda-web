@@ -1,4 +1,5 @@
 import React from 'react';
+import LocationButton from '../../../Shared/LocationButton';
 import './styles.css';
 
 const BuildingData = ({ data, updateData }) => {
@@ -7,18 +8,26 @@ const BuildingData = ({ data, updateData }) => {
         updateData({ [name]: value });
     };
 
+    const handleLocationFound = (address) => {
+        updateData({ address });
+    };
+
     return (
         <div className="building-data-container">
             <div className="form-field">
                 <label className="form-label">Endereço Completo</label>
-                <input
-                    type="text"
-                    name="address"
-                    value={data.address || ''}
-                    onChange={handleChange}
-                    placeholder="Rua, Número, Bairro, Cidade - UF"
-                    className="form-input"
-                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <input
+                        type="text"
+                        name="address"
+                        value={data.address || ''}
+                        onChange={handleChange}
+                        placeholder="Rua, Número, Bairro, Cidade - UF"
+                        className="form-input"
+                        style={{ flex: 1 }}
+                    />
+                    <LocationButton onLocationFound={handleLocationFound} />
+                </div>
             </div>
 
             <div className="grid-container">

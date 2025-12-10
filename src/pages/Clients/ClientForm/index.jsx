@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useClients } from '../../../hooks/Clients/useClients';
+import LocationButton from '../../../components/Shared/LocationButton';
 import './styles.css';
 
 const ClientForm = () => {
@@ -21,6 +22,10 @@ const ClientForm = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleLocationFound = (address) => {
+        setFormData(prev => ({ ...prev, address }));
     };
 
     const handleSubmit = (e) => {
@@ -50,13 +55,17 @@ const ClientForm = () => {
 
                     <div className="form-group">
                         <label className="form-label">Endereço Completo</label>
-                        <input
-                            type="text"
-                            name="address"
-                            value={formData.address}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <input
+                                type="text"
+                                name="address"
+                                value={formData.address}
+                                onChange={handleChange}
+                                className="form-input"
+                                style={{ flex: 1 }}
+                            />
+                            <LocationButton onLocationFound={handleLocationFound} />
+                        </div>
                     </div>
 
                     <div className="form-grid">
