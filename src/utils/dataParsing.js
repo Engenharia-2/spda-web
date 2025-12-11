@@ -46,3 +46,38 @@ export const parseMeasurementPoint = (pointStr) => {
         dataHora: dateTime
     };
 };
+
+// Helper to format resistance
+export const formatResistance = (val) => {
+    if (val === undefined || val === null || val === '') return '-';
+    const num = parseFloat(val);
+    if (isNaN(num)) return val;
+    if (num < 1 && num !== 0) {
+        return `${(num * 1000).toFixed(3)} m`;
+    }
+    return `${num.toFixed(3)}`;
+};
+
+// Helper to extract date/time
+export const extractMeasurementDateTime = (measurements) => {
+    if (!measurements?.parsedData || measurements.parsedData.length === 0) {
+        return { date: 'Não Informado', startTime: 'Não Informado', endTime: 'Não Informado' };
+    }
+    const first = measurements.parsedData[0];
+    const last = measurements.parsedData[measurements.parsedData.length - 1];
+
+    const parse = (str) => {
+        if (!str) return { date: '', time: '' };
+        const parts = str.split(' ');
+        return { date: parts[0] || '', time: parts[1] || '' };
+    };
+
+    const start = parse(first.dataHora);
+    const end = parse(last.dataHora);
+
+    return {
+        date: start.date || 'Não Informado',
+        startTime: start.time || 'Não Informado',
+        endTime: end.time || 'Não Informado'
+    };
+};

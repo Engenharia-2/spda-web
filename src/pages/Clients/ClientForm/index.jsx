@@ -55,14 +55,13 @@ const ClientForm = () => {
 
                     <div className="form-group">
                         <label className="form-label">Endereço Completo</label>
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                        <div className="address-wrapper">
                             <input
                                 type="text"
                                 name="address"
                                 value={formData.address}
                                 onChange={handleChange}
                                 className="form-input"
-                                style={{ flex: 1 }}
                             />
                             <LocationButton onLocationFound={handleLocationFound} />
                         </div>

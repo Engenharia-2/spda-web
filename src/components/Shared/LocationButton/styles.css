@@ -26,3 +26,11 @@
     opacity: 0.7;
     background-color: #f5f5f5;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .location-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

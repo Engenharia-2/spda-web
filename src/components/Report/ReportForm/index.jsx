@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useBlocker } from 'react-router-dom';
 import { useReports } from '../../../hooks/Report/useReports';
+import { useUnsavedChanges } from '../../../hooks/Settings/useUnsavedChanges';
 import useResponsive from '../../../hooks/useResponsive';
 import InitialInfo from '../../Report/Steps/InitialInfo';
 import BuildingData from '../../Report/Steps/BuildingData';
@@ -25,33 +25,8 @@ const ReportForm = () => {
         goToPrevStep,
     } = useReports();
 
-    // Block navigation if dirty
-    const blocker = useBlocker(
-        ({ currentLocation, nextLocation }) =>
-            isDirty && currentLocation.pathname !== nextLocation.pathname
-    );
-
-    useEffect(() => {
-        if (blocker.state === "blocked") {
-            const confirmLeave = window.confirm("Você tem alterações não salvas. Deseja sair sem salvar o rascunho?");
-            if (confirmLeave) {
-                blocker.proceed();
-            } else {
-                blocker.reset();
-            }
-        }
-    }, [blocker]);
-
-    useEffect(() => {
-        const handleBeforeUnload = (e) => {
-            if (isDirty) {
-                e.preventDefault();
-                e.returnValue = ''; // Trigger browser built-in dialog
-            }
-        };
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [isDirty]);
+    // Reuse existing hook for navigation blocking
+    useUnsavedChanges(isDirty);
 
     const { isMobileLayout: isMobile } = useResponsive();
 

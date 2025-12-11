@@ -77,3 +77,41 @@
     cursor: wait;
     opacity: 0.7;
 }
+
+/* Address and Location Button Wrapper */
+.address-wrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.address-wrapper .form-input {
+    flex: 1;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+
+    /* Stack form-grid inputs vertically on mobile */
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Stack address input and location button vertically on mobile */
+    .address-wrapper {
+        flex-direction: column;
+    }
+
+    .address-wrapper .form-input {
+        width: 100%;
+    }
+
+    /* Make form actions stack on very small screens */
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-cancel,
+    .btn-submit {
+        width: 100%;
+    }
+}

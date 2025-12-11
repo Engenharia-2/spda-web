@@ -1,36 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useEquipmentForm } from '../../../../hooks/Settings/ReportData/useEquipmentForm';
 
 const EquipmentForm = ({
     initialData,
     onSubmit,
     onCancel
 }) => {
-    const defaultFormState = {
-        equipmentName: '',
-        serialNumber: '',
-        calibrationDate: '',
-        calibrationValidity: ''
-    };
-
-    const [formData, setFormData] = useState(defaultFormState);
-
-    useEffect(() => {
-        if (initialData) {
-            setFormData(initialData);
-        } else {
-            setFormData(defaultFormState);
-        }
-    }, [initialData]);
-
-    const handleFormChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSubmit(formData);
-    };
+    const {
+        formData,
+        handleChange,
+        handleSubmit
+    } = useEquipmentForm(initialData, onSubmit);
 
     return (
         <div className="equipment-settings-container">
@@ -43,7 +23,7 @@ const EquipmentForm = ({
                             type="text"
                             name="equipmentName"
                             value={formData.equipmentName}
-                            onChange={handleFormChange}
+                            onChange={handleChange}
                             placeholder="Ex: Terrômetro Digital XYZ"
                             className="form-input"
                             required
@@ -55,7 +35,7 @@ const EquipmentForm = ({
                             type="text"
                             name="serialNumber"
                             value={formData.serialNumber}
-                            onChange={handleFormChange}
+                            onChange={handleChange}
                             placeholder="Ex: SN-123456"
                             className="form-input"
                             required
@@ -70,7 +50,7 @@ const EquipmentForm = ({
                             type="date"
                             name="calibrationDate"
                             value={formData.calibrationDate}
-                            onChange={handleFormChange}
+                            onChange={handleChange}
                             className="form-input"
                         />
                     </div>
@@ -80,7 +60,7 @@ const EquipmentForm = ({
                             type="date"
                             name="calibrationValidity"
                             value={formData.calibrationValidity}
-                            onChange={handleFormChange}
+                            onChange={handleChange}
                             className="form-input"
                         />
                     </div>

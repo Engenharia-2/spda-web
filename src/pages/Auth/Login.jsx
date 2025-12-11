@@ -13,21 +13,15 @@ const Login = () => {
         isLogin,
         setIsLogin,
         handleSubmit,
-        handleResetPassword,
         setError,
+        // Reset Password Modal
+        showResetModal,
+        resetEmail,
+        setResetEmail,
+        handleOpenResetModal,
+        handleCloseResetModal,
+        handleResetSubmit,
     } = useAuthForm();
-
-    const [showResetModal, setShowResetModal] = React.useState(false);
-    const [resetEmail, setResetEmail] = React.useState('');
-
-    const onResetSubmit = async (e) => {
-        e.preventDefault();
-        const success = await handleResetPassword(resetEmail);
-        if (success) {
-            setShowResetModal(false);
-            setResetEmail('');
-        }
-    };
 
     return (
         <div className="login-container">
@@ -70,10 +64,7 @@ const Login = () => {
                         <div style={{ textAlign: 'right', marginBottom: '15px' }}>
                             <button
                                 type="button"
-                                onClick={() => {
-                                    setShowResetModal(true);
-                                    setError('');
-                                }}
+                                onClick={handleOpenResetModal}
                                 className="text-btn"
                                 style={{
                                     background: 'none',
@@ -120,7 +111,7 @@ const Login = () => {
                             Digite seu email para receber o link de redefinição de senha.
                         </p>
 
-                        <form onSubmit={onResetSubmit} className="login-form">
+                        <form onSubmit={handleResetSubmit} className="login-form">
                             <div>
                                 <label className="form-label">Email</label>
                                 <input
@@ -135,10 +126,7 @@ const Login = () => {
                             <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        setShowResetModal(false);
-                                        setError('');
-                                    }}
+                                    onClick={handleCloseResetModal}
                                     className="toggle-btn"
                                     style={{ flex: 1, border: '1px solid #ccc' }}
                                 >

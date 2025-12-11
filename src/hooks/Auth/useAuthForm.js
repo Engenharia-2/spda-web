@@ -10,6 +10,10 @@ export const useAuthForm = () => {
     const [loading, setLoading] = useState(false);
     const [isLogin, setIsLogin] = useState(true);
 
+    // Reset Password Modal States
+    const [showResetModal, setShowResetModal] = useState(false);
+    const [resetEmail, setResetEmail] = useState('');
+
     const { login, signup } = useAuth();
     const navigate = useNavigate();
 
@@ -71,17 +75,42 @@ export const useAuthForm = () => {
         }
     };
 
+    const handleOpenResetModal = () => {
+        setShowResetModal(true);
+        setError(''); // Clear any previous errors
+    };
+
+    const handleCloseResetModal = () => {
+        setShowResetModal(false);
+        setResetEmail('');
+        setError('');
+    };
+
+    const handleResetSubmit = async (e) => {
+        e.preventDefault();
+        const success = await handleResetPassword(resetEmail);
+        if (success) {
+            handleCloseResetModal();
+        }
+    };
+
     return {
         email,
         setEmail,
         password,
         setPassword,
         error,
-        setError, // Exposing setError to clear it manually if needed
+        setError,
         loading,
         isLogin,
         setIsLogin,
         handleSubmit,
-        handleResetPassword,
+        // Reset Password Modal
+        showResetModal,
+        resetEmail,
+        setResetEmail,
+        handleOpenResetModal,
+        handleCloseResetModal,
+        handleResetSubmit,
     };
 };

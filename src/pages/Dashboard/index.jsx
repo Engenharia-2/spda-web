@@ -1,52 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { StorageService } from '../../services/StorageService';
 import { ClientService } from '../../services/ClientService';
+import { useReports } from '../../hooks/Report/useReports';
 import StatCard from '../../components/Dashboard/StatCard';
 import ReportList from '../../components/Report/ReportList';
 import './styles.css';
 
 const Dashboard = () => {
     const { currentUser } = useAuth();
-    const [reports, setReports] = useState([]);
+    const {
+        filteredReports: reports,
+        listLoading: loading,
+        deleteReport
+    } = useReports();
+
     const [clientsCount, setClientsCount] = useState(0);
-    const [loading, setLoading] = useState(true);
 
-    const fetchData = async () => {
-        if (currentUser) {
-            try {
-                const [reportsData, clientsData] = await Promise.all([
-                    StorageService.getUserReports(currentUser.uid),
-                    ClientService.getUserClients(currentUser.uid)
-                ]);
-                setReports(reportsData);
-                setClientsCount(clientsData.length);
-            } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-    };
-
+    // Fetch clients count for dashboard statistics
     useEffect(() => {
-        fetchData();
-    }, [currentUser]);
-
-    const handleDelete = async (reportId) => {
-        if (window.confirm('Tem certeza que deseja excluir este relatório?')) {
-            try {
-                await StorageService.deleteReport(reportId);
-                // Refresh list
-                setReports(prev => prev.filter(r => r.id !== reportId));
-                alert('Relatório excluído com sucesso.');
-            } catch (error) {
-                console.error('Error deleting report:', error);
-                alert('Erro ao excluir relatório.');
+        const fetchClients = async () => {
+            if (currentUser) {
+                try {
+                    const clientsData = await ClientService.getUserClients(currentUser.uid);
+                    setClientsCount(clientsData.length);
+                } catch (error) {
+                    console.error('Error fetching clients:', error);
+                }
             }
-        }
-    };
+        };
+        fetchClients();
+    }, [currentUser]);
 
     const completedReports = reports.filter(r => r.status === 'completed').length;
     const pendingReports = reports.filter(r => r.status === 'draft').length;
@@ -92,7 +76,7 @@ const Dashboard = () => {
             <ReportList
                 reports={reports}
                 loading={loading}
-                onDelete={handleDelete}
+                onDelete={deleteReport}
                 variant="dashboard"
             />
         </div>

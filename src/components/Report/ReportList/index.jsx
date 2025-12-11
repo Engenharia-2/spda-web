@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import useResponsive from '../../../hooks/useResponsive';
+import { getMeasurementDate } from '../../../utils/reportUtils';
 import './styles.css';
 
 const ReportList = ({
@@ -17,19 +18,6 @@ const ReportList = ({
 
     // If dashboard, we might want to limit items or show a specific title
     const displayReports = isDashboard ? reports.slice(0, 5) : reports;
-
-    // Helper function to extract date from measurement data
-    const getMeasurementDate = (report) => {
-        if (report.measurements?.parsedData && report.measurements.parsedData.length > 0) {
-            const firstMeasurement = report.measurements.parsedData[0];
-            if (firstMeasurement.dataHora) {
-                // Extract date from "DD/MM/YYYY HH:mm:ss" format
-                const datePart = firstMeasurement.dataHora.split(' ')[0];
-                return datePart || 'N/A';
-            }
-        }
-        return 'N/A';
-    };
 
     if (loading) {
         return <div className="loading-container">Carregando laudos...</div>;

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useBlocker } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useChecklistSettings } from '../../hooks/Settings/ReportData/useChecklistSettings';
 import { useReportCustomization } from '../../hooks/Settings/UIData/useReportCustomization';
@@ -7,7 +6,8 @@ import { useEngineerSettings } from '../../hooks/Settings/ReportData/useEngineer
 import { useEquipmentSettings } from '../../hooks/Settings/ReportData/useEquipmentSettings';
 import { useStorageMode } from '../../hooks/Settings/useStorageMode';
 import { useSync } from '../../hooks/Settings/useSync';
-import { SettingsService } from '../../services/SettingsService';
+import { useUnsavedChanges } from '../../hooks/Settings/useUnsavedChanges';
+import { useSettingsSave } from '../../hooks/Settings/useSettingsSave';
 import SubscriptionPlan from '../../components/Settings/SubscriptionPlan';
 import StorageSettings from '../../components/Settings/StorageSettings';
 import DataSync from '../../components/Settings/DataSync';
@@ -44,59 +44,19 @@ const Settings = () => {
         engineerSettingsHook.isDirty ||
         equipmentSettingsHook.isDirty;
 
-    // React Router Blocker (prevents navigation within the app)
-    const blocker = useBlocker(
-        ({ currentLocation, nextLocation }) =>
-            isDirty && currentLocation.pathname !== nextLocation.pathname
-    );
-
-    React.useEffect(() => {
-        if (blocker.state === "blocked") {
-            const confirmLeave = window.confirm("Você tem alterações não salvas. Deseja sair sem salvar?");
-            if (confirmLeave) {
-                blocker.proceed();
-            } else {
-                blocker.reset();
-            }
-        }
-    }, [blocker]);
-
-    React.useEffect(() => {
-        const handleBeforeUnload = (e) => {
-            if (isDirty) {
-                e.preventDefault();
-                e.returnValue = ''; // Trigger browser built-in dialog
-            }
-        };
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [isDirty]);
+    // Hook to manage unsaved changes warnings
+    useUnsavedChanges(isDirty);
 
     const { storageMode, handleStorageModeChange } = useStorageMode();
     const { syncing, syncProgress, handleSyncLocalToCloud, handleSyncCloudToLocal } = useSync();
 
-    const handleSaveAll = async () => {
-        try {
-            // Save all settings without showing individual alerts
-            await Promise.all([
-                SettingsService.saveSetting(currentUser.uid, 'checklistConfig', items),
-                SettingsService.saveSetting(currentUser.uid, 'reportConfig', reportCustomizationHook.reportConfig),
-                SettingsService.saveSetting(currentUser.uid, 'engineerConfig', engineerSettingsHook.engineerData),
-                SettingsService.saveSetting(currentUser.uid, 'equipmentConfig', equipmentSettingsHook.equipmentList)
-            ]);
-
-            // Confirm saved state to reset isDirty flags
-            checklistHook.confirmSaved();
-            reportCustomizationHook.confirmSaved();
-            engineerSettingsHook.confirmSaved();
-            equipmentSettingsHook.confirmSaved();
-
-            alert('Todas as configurações foram salvas com sucesso!');
-        } catch (error) {
-            console.error('Error saving settings:', error);
-            alert('Erro ao salvar configurações.');
-        }
-    };
+    // Hook to orchestrate saving all settings
+    const { handleSaveAll, isSaving } = useSettingsSave({
+        checklistHook,
+        reportCustomizationHook,
+        engineerSettingsHook,
+        equipmentSettingsHook
+    });
 
     if (loading) {
         return <div className="settings-loading">Carregando configurações...</div>;
@@ -122,8 +82,8 @@ const Settings = () => {
                     </p>
                 </div>
                 {activeTab === 'report' && (
-                    <button onClick={handleSaveAll} disabled={checklistSaving} className="save-button">
-                        {checklistSaving ? 'Salvando...' : 'Salvar Alterações'}
+                    <button onClick={handleSaveAll} disabled={isSaving} className="save-button">
+                        {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                     </button>
                 )}
             </div>

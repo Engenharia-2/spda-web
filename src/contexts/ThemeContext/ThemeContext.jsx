@@ -18,7 +18,10 @@ export const ThemeProvider = ({ children }) => {
     }, [theme]);
 
     const toggleTheme = () => {
-        setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
+        // Use requestAnimationFrame to ensure smooth transition
+        requestAnimationFrame(() => {
+            setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
+        });
     };
 
     return (

@@ -1,48 +1,22 @@
 
-import React, { useState } from 'react';
-import { AuthService } from '../../../services/AuthService';
+import React from 'react';
+import { usePasswordChange } from '../../../hooks/Settings/usePasswordChange';
 
 const AccountSettings = () => {
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const {
+        newPassword,
+        setNewPassword,
+        confirmPassword,
+        setConfirmPassword,
+        loading,
+        error,
+        success,
+        handlePasswordChange
+    } = usePasswordChange();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
-        if (newPassword !== confirmPassword) {
-            setError('As senhas não coincidem.');
-            return;
-        }
-
-        if (newPassword.length < 6) {
-            setError('A nova senha deve ter pelo menos 6 caracteres.');
-            return;
-        }
-
-        setLoading(true);
-
-        try {
-            await AuthService.updateUserPassword(newPassword);
-            setSuccess('Senha atualizada com sucesso!');
-            setNewPassword('');
-            setConfirmPassword('');
-            // Optional: You might want to ask for re-login or keep them logged in
-        } catch (err) {
-            console.error(err);
-            if (err.code === 'auth/requires-recent-login') {
-                setError('Esta operação requer um login recente. Por favor, saia e entre novamente para trocar sua senha.');
-            } else {
-                setError('Erro ao atualizar senha: ' + err.message);
-            }
-        } finally {
-            setLoading(false);
-        }
+        await handlePasswordChange();
     };
 
     return (

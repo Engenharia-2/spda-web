@@ -1,5 +1,6 @@
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Image, Font, Svg, Path } from '@react-pdf/renderer';
+import { formatResistance, extractMeasurementDateTime } from '../../utils/dataParsing';
 
 // Register Roboto font to support special characters like Ohm (Ω)
 Font.register({
@@ -9,41 +10,6 @@ Font.register({
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf', fontWeight: 'bold' }
     ]
 });
-
-// Helper to format resistance
-const formatResistance = (val) => {
-    if (val === undefined || val === null || val === '') return '-';
-    const num = parseFloat(val);
-    if (isNaN(num)) return val;
-    if (num < 1 && num !== 0) {
-        return `${(num * 1000).toFixed(3)} m`;
-    }
-    return `${num.toFixed(3)}`;
-};
-
-// Helper to extract date/time
-const extractMeasurementDateTime = (measurements) => {
-    if (!measurements?.parsedData || measurements.parsedData.length === 0) {
-        return { date: 'Não Informado', startTime: 'Não Informado', endTime: 'Não Informado' };
-    }
-    const first = measurements.parsedData[0];
-    const last = measurements.parsedData[measurements.parsedData.length - 1];
-
-    const parse = (str) => {
-        if (!str) return { date: '', time: '' };
-        const parts = str.split(' ');
-        return { date: parts[0] || '', time: parts[1] || '' };
-    };
-
-    const start = parse(first.dataHora);
-    const end = parse(last.dataHora);
-
-    return {
-        date: start.date || 'Não Informado',
-        startTime: start.time || 'Não Informado',
-        endTime: end.time || 'Não Informado'
-    };
-};
 
 const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
     const measurementDateTime = extractMeasurementDateTime(data.measurements);
@@ -207,7 +173,7 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
         },
         signatureBlock: {
             marginTop: 20,
-            alignItems: 'center',
+            alignItems: 'flex-start',
         },
         signatureImage: {
             width: 150,
@@ -216,16 +182,17 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
         },
         footer: {
             position: 'absolute',
-            bottom: 30,
-            left: 30,
-            right: 30,
+            bottom: 0,
+            left: 0,
+            right: 0,
             textAlign: 'center',
             fontSize: 8,
-            color: '#aaa',
+            color: headerTextColor,
             borderTopWidth: 1,
             borderTopColor: '#eee',
+            backgroundColor: headerBgColor,
             paddingTop: 10,
-            marginTop: 20,
+            paddingBottom: 10,
         },
     });
 
@@ -323,53 +290,55 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                 </View>
 
                 {/* 4. Inspeção e Verificação */}
-                <View style={styles.section}>
+                <View style={styles.section} wrap={false}>
                     <Text style={styles.sectionTitle}>{incrementH2()} - Inspeção e Verificação:</Text>
 
-                    <Text style={styles.subSectionTitle}>{incrementH3()} - Checklist de Conformidade:</Text>
-                    {Object.entries(data.checklist || {}).map(([key, value]) => {
-                        const defaultLabels = {
-                            captores: 'Captores',
-                            descidas: 'Descidas',
-                            aneis: 'Anéis de Cintamento',
-                            malha: 'Malha de Aterramento',
-                            bep: 'BEP (Barramento)',
-                            dps: 'DPS',
-                            conexoes: 'Conexões',
-                            sinalizacao: 'Sinalização'
-                        };
+                    <View wrap={false}>
+                        <Text style={styles.subSectionTitle}>{incrementH3()} - Checklist de Conformidade:</Text>
+                        {Object.entries(data.checklist || {}).map(([key, value]) => {
+                            const defaultLabels = {
+                                captores: 'Captores',
+                                descidas: 'Descidas',
+                                aneis: 'Anéis de Cintamento',
+                                malha: 'Malha de Aterramento',
+                                bep: 'BEP (Barramento)',
+                                dps: 'DPS',
+                                conexoes: 'Conexões',
+                                sinalizacao: 'Sinalização'
+                            };
 
-                        const isDefault = Object.prototype.hasOwnProperty.call(defaultLabels, key);
-                        const configItem = data.checklistConfig?.find(item => item.id === key);
+                            const isDefault = Object.prototype.hasOwnProperty.call(defaultLabels, key);
+                            const configItem = data.checklistConfig?.find(item => item.id === key);
 
-                        // If NOT default AND NOT in config, it is orphaned -> Skip
-                        if (!isDefault && !configItem) {
-                            return null;
-                        }
+                            // If NOT default AND NOT in config, it is orphaned -> Skip
+                            if (!isDefault && !configItem) {
+                                return null;
+                            }
 
-                        const label = isDefault ? defaultLabels[key] : configItem?.label;
+                            const label = isDefault ? defaultLabels[key] : configItem?.label;
 
-                        if (!label) return null;
+                            if (!label) return null;
 
-                        const StatusIcon = value.status === 'C' ? CheckIcon : value.status === 'NC' ? CrossIcon : DashIcon;
+                            const StatusIcon = value.status === 'C' ? CheckIcon : value.status === 'NC' ? CrossIcon : DashIcon;
 
-                        return (
-                            <View key={key} style={styles.checklistRow} wrap={false}>
-                                <Text>
-                                    <Text style={styles.label}>{label}</Text>
-                                    {value.observation ? ` - ${value.observation}` : ''}
-                                </Text>
-                                <View style={styles.checklistIcon}>
-                                    <StatusIcon />
+                            return (
+                                <View key={key} style={styles.checklistRow} wrap={false}>
+                                    <Text>
+                                        <Text style={styles.label}>{label}</Text>
+                                        {value.observation ? ` - ${value.observation}` : ''}
+                                    </Text>
+                                    <View style={styles.checklistIcon}>
+                                        <StatusIcon />
+                                    </View>
                                 </View>
-                            </View>
-                        );
-                    })}
+                            );
+                        })}
+                    </View>
                     <View style={styles.divider} />
                 </View>
 
                 {/* 5. Dados de Resistência */}
-                <View style={styles.section}>
+                <View style={styles.section} break>
                     <Text style={styles.sectionTitle}>{incrementH2()} - Dados de Resistência e Corrente:</Text>
                     {(data.measurements?.parsedData || []).length > 0 ? (
                         <View style={styles.table}>
@@ -394,13 +363,15 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                 </View>
 
                 {/* 6. Conclusão */}
-                <View style={styles.section}>
+                <View style={styles.section} wrap={false}>
                     <Text style={styles.sectionTitle}>{incrementH2()} - Conclusão:</Text>
 
-                    <Text style={styles.subSectionTitle}>{incrementH3()} - Parecer Técnico:</Text>
-                    <Text style={{ textAlign: 'justify', marginBottom: 10 }}>
-                        {data.technicalOpinion || 'Não Informado'}
-                    </Text>
+                    <View wrap={false}>
+                        <Text style={styles.subSectionTitle}>{incrementH3()} - Parecer Técnico:</Text>
+                        <Text style={{ textAlign: 'justify', marginBottom: 10 }}>
+                            {data.technicalOpinion || 'Não Informado'}
+                        </Text>
+                    </View>
                     <View style={styles.divider} />
 
                     <View style={styles.section} wrap={false}>
@@ -429,9 +400,13 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                     </View>
                 )}
 
-                <Text style={styles.footer} fixed>
-                    Gerado pelo App LDM-Mobile (Web Version)
-                </Text>
+                <Text
+                    style={styles.footer}
+                    fixed
+                    render={({ pageNumber, totalPages }) =>
+                        `Copyright ©2025. Todos direitos reservados à LHF Sistemas de Teste e Medição | Página ${pageNumber} de ${totalPages} `
+                    }
+                />
             </Page>
         </Document>
     );
