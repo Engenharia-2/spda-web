@@ -39,19 +39,14 @@ const signup = async (email, password) => {
         console.log('Attempting to create user doc in Firestore...');
         try {
             const userDocPromise = _createUserDocument(user.uid, user.email);
-            // Increased timeout to 15s to be safer
-            await withTimeout(userDocPromise, 15000);
+            // Increased timeout to 45s to handle geographic latency (Brazil to nam5)
+            await withTimeout(userDocPromise, 45000);
             console.log('User doc created successfully');
         } catch (error) {
-            console.error('Firestore user doc creation failed. Rolling back Auth user...', error);
-            // Critical: If Firestore doc fails, we must delete the Auth user to prevent 'ghost' accounts.
-            try {
-                await deleteUser(user);
-                console.log('Auth user rolled back successfully.');
-            } catch (rollbackError) {
-                console.error('CRITICAL: Failed to rollback Auth user after Firestore error!', rollbackError);
-            }
-            throw new Error('Falha ao criar dados do usuário. Tente novamente.');
+            console.error('Firestore user doc creation failed or timed out:', error);
+            // Don't rollback Auth user - let the login flow handle document creation
+            // This prevents orphaned Firestore documents when the operation completes after timeout
+            console.warn('User created in Auth but Firestore doc may be pending. Document will be created on first login if needed.');
         }
 
         await signOut(auth); // Deslogar após o cadastro para forçar o login

@@ -19,11 +19,11 @@ const SACButton = () => {
                     <div className="sac-content">
                         <div className="sac-info-row">
                             <Phone size={18} color="#007bff" />
-                            <span className="sac-info-text">(47) 99999-9999</span>
+                            <span className="sac-info-text">(47)3370-2441</span>
                         </div>
                         <div className="sac-info-row">
                             <Mail size={18} color="#007bff" />
-                            <span className="sac-info-text">suporte@lhfsistemas.com.br</span>
+                            <span className="sac-info-text">lhf.atendimento@gmail.com</span>
                         </div>
                     </div>
                 </div>

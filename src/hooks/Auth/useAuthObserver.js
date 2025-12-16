@@ -15,7 +15,7 @@ export const useAuthObserver = () => {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
                     if (userDoc.exists() && userDoc.data().status === 'approved') {
                         const userData = userDoc.data();
-                        const isAdmin = userData.role === 'admin' || user.email === 'lucas@lhf.ind.br';
+                        const isAdmin = userData.role === 'admin';
 
                         setCurrentUser({
                             ...user,
@@ -24,8 +24,12 @@ export const useAuthObserver = () => {
                             isPro: userData.subscription === 'pro'
                         });
                     } else {
-                        await AuthService.logout();
-                        setCurrentUser(null);
+                        // Add small delay to avoid race condition with signup process
+                        // This gives signup time to complete Firestore document creation
+                        setTimeout(async () => {
+                            await AuthService.logout();
+                            setCurrentUser(null);
+                        }, 2000);
                     }
                 } catch (error) {
                     console.error('Error verifying user status:', error);
