@@ -31,6 +31,9 @@
     cursor: pointer;
     text-align: left;
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .storage-option-button.selected {

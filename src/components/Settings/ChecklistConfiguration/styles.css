@@ -94,7 +94,11 @@
 .delete-item-button {
     background: none;
     border: none;
-    color: var(--color-error);
+    color: var(--color-text-primary);
     cursor: pointer;
     padding: 0.5rem;
+}
+
+.trash-icon {
+    color: var(--color-text-primary);
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { StorageService } from '../../../services/StorageService';
+import { resolveImageUrl } from '../../../utils/ImageProcessor';
 
 /**
  * Hook customizado para gerenciar upload e exibição de assinatura
@@ -16,19 +17,15 @@ export const useSignatureUpload = (data, onSignatureChange, uploadPath = 'settin
 
     // Resolve local URL if needed
     useEffect(() => {
-        const resolveUrl = async () => {
+        const resolve = async () => {
             if (data?.signature) {
-                if (data.signature.startsWith('local-image://')) {
-                    const resolved = await StorageService.resolveImageUrl(data.signature);
-                    setSignatureUrl(resolved);
-                } else {
-                    setSignatureUrl(data.signature);
-                }
+                const resolved = await resolveImageUrl(data.signature);
+                setSignatureUrl(resolved);
             } else {
                 setSignatureUrl(null);
             }
         };
-        resolveUrl();
+        resolve();
     }, [data?.signature]);
 
     const saveSignature = async (canvasRef) => {
@@ -48,7 +45,11 @@ export const useSignatureUpload = (data, onSignatureChange, uploadPath = 'settin
                     alert('Assinatura salva com sucesso!');
                 } catch (error) {
                     console.error('Error saving signature:', error);
-                    alert('Erro ao salvar assinatura.');
+                    if (error.code === 'storage/unauthorized') {
+                        alert('Limite de armazenamento atingido (50MB). Libere espaço removendo itens antigos.');
+                    } else {
+                        alert('Erro ao salvar assinatura.');
+                    }
                 } finally {
                     setUploading(false);
                 }
@@ -68,7 +69,11 @@ export const useSignatureUpload = (data, onSignatureChange, uploadPath = 'settin
             setSignatureUrl(uploaded.url);
         } catch (error) {
             console.error('Error uploading signature:', error);
-            alert('Erro ao enviar assinatura.');
+            if (error.code === 'storage/unauthorized') {
+                alert('Limite de armazenamento atingido (50MB). Libere espaço removendo itens antigos.');
+            } else {
+                alert('Erro ao enviar assinatura.');
+            }
         } finally {
             setUploading(false);
         }
@@ -90,3 +95,4 @@ export const useSignatureUpload = (data, onSignatureChange, uploadPath = 'settin
         handleRemoveSignature
     };
 };
+

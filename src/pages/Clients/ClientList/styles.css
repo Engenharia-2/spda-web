@@ -197,12 +197,12 @@
 
 .mobile-btn-edit {
     background: rgba(56, 189, 248, 0.1);
-    color: var(--color-accent-primary);
+    color: var(--color-text-primary);
 }
 
 .mobile-btn-delete {
     background: rgba(239, 68, 68, 0.1);
-    color: var(--color-error);
+    color: var(--color-text-primary);
 }
 
 .mobile-card-details {

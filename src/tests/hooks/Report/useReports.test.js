@@ -113,7 +113,7 @@ describe('useReports', () => {
             });
 
             expect(global.confirm).toHaveBeenCalled();
-            expect(mocks.deleteReport).toHaveBeenCalledWith('1');
+            expect(mocks.deleteReport).toHaveBeenCalledWith('1', 'user-123');
         });
     });
 

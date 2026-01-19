@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useClients } from '../../../hooks/Clients/useClients';
 import useResponsive from '../../../hooks/useResponsive';
 import './styles.css';
+import { Pencil, Trash2, Phone, Mail } from 'lucide-react';
 
 const ClientList = () => {
     const {
@@ -108,24 +109,24 @@ const ClientList = () => {
                                     <div className="mobile-card-actions">
                                         <Link to={`/client-form?id=${client.id}`} style={{ textDecoration: 'none' }}>
                                             <button className="mobile-action-btn mobile-btn-edit">
-                                                ✏️
+                                                <Pencil />
                                             </button>
                                         </Link>
                                         <button
                                             onClick={() => handleDelete(client.id)}
                                             className="mobile-action-btn mobile-btn-delete"
                                         >
-                                            🗑️
+                                            <Trash2 />
                                         </button>
                                     </div>
                                 </div>
 
                                 <div className="mobile-card-details">
                                     <div className="mobile-detail-item">
-                                        <span>📧</span> {client.email || '-'}
+                                        <Mail /> {client.email || '-'}
                                     </div>
                                     <div className="mobile-detail-item">
-                                        <span>📱</span> {client.phone || '-'}
+                                        <Phone /> {client.phone || '-'}
                                     </div>
                                 </div>
                             </div>

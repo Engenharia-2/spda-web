@@ -1,7 +1,7 @@
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import ReportDocument from './ReportTemplate/ReportDocument';
-import { StorageService } from '../services/StorageService';
+import { resolveImageUrl } from './ImageProcessor';
 
 export const generateReport = async (data) => {
     console.log('[PDFGenerator] Iniciando geração de relatório...', { data });
@@ -17,8 +17,8 @@ export const generateReport = async (data) => {
             resolvedAttachments = await Promise.all(data.attachments.map(async (att) => {
                 let url = att.url;
                 console.log(`[PDFGenerator] Resolvendo anexo: ${url}`);
-                if (url && url.startsWith('local-image://')) {
-                    url = await StorageService.resolveImageUrl(url);
+                if (url) { // Garante que a url não é nula/indefinida
+                    url = await resolveImageUrl(url);
                 }
                 return { ...att, url };
             }));
@@ -28,10 +28,7 @@ export const generateReport = async (data) => {
         if (data.signature) {
             let sigUrl = data.signature;
             console.log(`[PDFGenerator] Resolvendo assinatura: ${sigUrl}`);
-            if (sigUrl.startsWith('local-image://')) {
-                sigUrl = await StorageService.resolveImageUrl(sigUrl);
-            }
-            resolvedSignature = sigUrl;
+            resolvedSignature = await resolveImageUrl(sigUrl);
         }
         console.timeEnd('PDFGeneration: ImageResolution');
         console.log('[PDFGenerator] Imagens resolvidas.', { resolvedAttachments, resolvedSignature });

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAttachments } from '../../../../hooks/Report/useAttachments';
-import { StorageService } from '../../../../services/StorageService';
+import { resolveImageUrl } from '../../../../utils/ImageProcessor';
 import './styles.css';
 
 const Attachments = ({ data, updateData }) => {
@@ -74,20 +74,15 @@ export default Attachments;
 
 // Helper component to resolve local URLs
 const AttachmentItem = ({ attachment, index, onRemove, onDescriptionChange }) => {
-    const [src, setSrc] = useState(() => {
-        if (attachment.url && attachment.url.startsWith('local-image://')) {
-            return null; // Wait for resolution
-        }
-        return attachment.url;
-    });
+    const [src, setSrc] = useState(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const loadSrc = async () => {
-            if (attachment.url && attachment.url.startsWith('local-image://')) {
-                const resolved = await StorageService.resolveImageUrl(attachment.url);
+            if (attachment.url) {
+                const resolved = await resolveImageUrl(attachment.url);
                 setSrc(resolved);
             } else {
-                setSrc(attachment.url);
+                setSrc(null);
             }
         };
         loadSrc();

@@ -1,0 +1,98 @@
+Regras Storage
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Função para verificar se o usuário não excedeu o limite de 50MB (52.428.800 bytes)
+    function hasSpaceAvailable(userId) {
+      let userPath = /databases/(default)/documents/users/$(userId);
+      // Permite se: Doc não existe OU Campo não existe OU Campo < 50MB
+      return !firestore.exists(userPath) || 
+             !('storage_usage_bytes' in firestore.get(userPath).data) ||
+             firestore.get(userPath).data.storage_usage_bytes < 50 * 1024 * 1024;
+    }
+
+    // Firmwares: Auth para upload (Admin) e download (Device Manager)
+    match /firmwares/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Default: Deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Regras para upload de imagem 
+    // Estrutura: reports/{userId}/{reportId}/attachments/{filename}
+    match /reports/{userId}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId && hasSpaceAvailable(userId);
+    }
+
+    // Regras para configurações de usuário e assinaturas
+    // Estrutura: settings/{userId}/{filename}
+    match /settings/{userId}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId && hasSpaceAvailable(userId);
+    }
+
+  }
+}
+
+Regras do database 
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    //Verifica se o usuário está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Verifica se o usuário é admin
+    // CORRIGIDO: Agora verifica o campo 'role' para corresponder à lógica da aplicação.
+    function isDbAdmin() {
+       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+		// Lista usuários na pasta de Admin 
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isDbAdmin());
+    }
+
+    // 2. CONFIGURAÇÕES
+    match /settings/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 3. CLIENTES
+    match /clients/{clientId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // 4. RELATÓRIOS
+    match /reports/{reportId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // 5. FIRMWARES
+    match /firmwares/{firmwareId} {
+      allow read: if isAuthenticated();
+      // Admin do banco pode atualizar firmwares
+      allow create, update: if isAuthenticated() && isDbAdmin(); 
+    }
+
+    // Bloqueio padrão para o resto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

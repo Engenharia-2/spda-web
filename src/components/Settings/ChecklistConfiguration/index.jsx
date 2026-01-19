@@ -1,4 +1,4 @@
-
+import { Trash2 } from 'lucide-react';
 import './styles.css';
 
 const ChecklistConfiguration = ({
@@ -41,7 +41,7 @@ const ChecklistConfiguration = ({
                             {item.isDefault && <span className="default-badge">Padrão</span>}
                         </div>
                         <button onClick={() => onDeleteItem(item.id)} className="delete-item-button" title="Remover item">
-                            🗑️
+                            <Trash2 className="trash-icon"/>
                         </button>
                     </div>
                 ))}

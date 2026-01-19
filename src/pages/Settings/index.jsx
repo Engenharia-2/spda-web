@@ -94,13 +94,13 @@ const Settings = () => {
                     className={`tab-button ${activeTab === 'account' ? 'active' : ''}`}
                     onClick={() => setActiveTab('account')}
                 >
-                    👤 Conta
+                    Conta
                 </button>
                 <button
                     className={`tab-button ${activeTab === 'report' ? 'active' : ''}`}
                     onClick={() => setActiveTab('report')}
                 >
-                    📄 Relatório
+                    Relatório
                 </button>
             </div>
 

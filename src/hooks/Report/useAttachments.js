@@ -60,15 +60,33 @@ export const useAttachments = (data, updateData) => {
 
         } catch (error) {
             console.error('[useAttachments] CRITICAL: Error during attachment process.', error);
-            alert(`Ocorreu um erro grave ao anexar as fotos: ${error.message}`);
+            
+            if (error.code === 'storage/unauthorized') {
+                alert('Limite de armazenamento atingido (50MB). Por favor, exclua relatórios ou anexos antigos para liberar espaço.');
+            } else {
+                alert(`Ocorreu um erro ao anexar as fotos: ${error.message}`);
+            }
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
-    const handleRemoveAttachment = (index) => {
+    const handleRemoveAttachment = async (index) => {
         if (window.confirm('Remover este anexo?')) {
+            const attachmentToDelete = attachments[index];
+            
+            // Try to delete from storage if path exists
+            if (attachmentToDelete && attachmentToDelete.path) {
+                try {
+                    await StorageService.deleteFile(attachmentToDelete.path);
+                } catch (error) {
+                    console.error('Error deleting file from storage:', error);
+                    // Decide if we want to block UI removal on error. 
+                    // Usually better to allow UI removal so user isn't stuck.
+                }
+            }
+
             const newAttachments = [...attachments];
             newAttachments.splice(index, 1);
             updateData({ attachments: newAttachments });

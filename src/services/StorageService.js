@@ -1,4 +1,3 @@
-import imageCompression from 'browser-image-compression';
 import { db, storage } from './firebase';
 import {
     collection,
@@ -12,8 +11,9 @@ import {
     serverTimestamp,
     deleteDoc
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
 import { LocalStorageService } from './LocalStorageService';
+import { compressImage } from '../utils/ImageProcessor';
 
 const REPORTS_COLLECTION = 'reports';
 
@@ -23,6 +23,28 @@ const getStorageMode = () => {
     const finalMode = mode || 'cloud'; // default to cloud for now, will change logic later
     console.log(`[StorageService] getStorageMode: Detected mode is "${finalMode}".`);
     return finalMode;
+};
+
+// Helper to recursively delete all files and folders within a given storage path
+const deleteFolderContents = async (path) => {
+    try {
+        const folderRef = ref(storage, path);
+        const res = await listAll(folderRef);
+
+        // Delete all files in the current folder
+        const deleteFilePromises = res.items.map(itemRef => deleteObject(itemRef));
+
+        // Recursively delete all subfolders
+        const deleteFolderPromises = res.prefixes.map(prefixRef => deleteFolderContents(prefixRef.fullPath));
+
+        await Promise.all([...deleteFilePromises, ...deleteFolderPromises]);
+        console.log(`[StorageService] Successfully deleted contents of folder: ${path}`);
+    } catch (error) {
+        if (error.code !== 'storage/object-not-found') {
+            console.error(`[StorageService] Error deleting folder contents for path: ${path}`, error);
+        }
+        // Do not throw error, to allow the main deletion process to continue
+    }
 };
 
 export const StorageService = {
@@ -106,42 +128,60 @@ export const StorageService = {
         }
     },
 
-    // Delete a report
-    deleteReport: async (reportId) => {
+    // Delete a report and its associated files
+    deleteReport: async (reportId, userId) => {
         const mode = getStorageMode();
 
         if (mode === 'local') {
             return await LocalStorageService.deleteReport(reportId);
         }
 
+        // Cloud mode
         try {
+            // First, delete all associated files in Firebase Storage.
+            if (userId) {
+                const reportFolderPath = `reports/${userId}/${reportId}`;
+                console.log(`[StorageService] Deleting all files in folder: ${reportFolderPath}`);
+                await deleteFolderContents(reportFolderPath);
+            } else {
+                console.warn(`[StorageService] No userId provided for report ${reportId}. Cannot delete associated files.`);
+            }
+
+            // After deleting files, delete the Firestore document.
             await deleteDoc(doc(db, REPORTS_COLLECTION, reportId));
+            console.log(`[StorageService] Report document ${reportId} deleted successfully.`);
         } catch (error) {
             console.error('Error deleting report (cloud):', error);
             throw error;
         }
     },
 
+    // Delete a file from storage
+    deleteFile: async (path) => {
+        if (!path) return;
+        const mode = getStorageMode();
+
+        if (mode === 'local') {
+            console.log('[StorageService] Local file deletion not required/implemented for this context.');
+            return;
+        }
+
+        try {
+            console.log(`[StorageService] Attempting to delete file at path: ${path}`);
+            const fileRef = ref(storage, path);
+            await deleteObject(fileRef);
+            console.log('[StorageService] File deleted successfully.');
+        } catch (error) {
+            console.error('[StorageService] Error deleting file:', error);
+            // We usually don't throw here to avoid blocking the UI if the file was already gone
+        }
+    },
+
     // Upload a file
     uploadImage: async (file, path) => {
         console.log(`[StorageService] uploadImage called for file: ${file.name}`);
-        console.log(`[StorageService] Original image size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
-
-        const options = {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 1920,
-            useWebWorker: true,
-        };
-
-        let processedFile;
-        try {
-            console.log('[StorageService] Compressing image...');
-            processedFile = await imageCompression(file, options);
-            console.log(`[StorageService] Compressed image size: ${(processedFile.size / 1024 / 1024).toFixed(2)} MB`);
-        } catch (compressionError) {
-            console.error('[StorageService] Error during image compression. Falling back to original file.', compressionError);
-            processedFile = file;
-        }
+        
+        const processedFile = await compressImage(file);
 
         const mode = getStorageMode();
         console.log(`[StorageService] Detected storage mode: "${mode}"`);
@@ -153,7 +193,7 @@ export const StorageService = {
                 console.log('[StorageService] LocalStorageService.saveImage returned:', result);
                 return result;
             } catch (localError) {
-                console.error('[StorageService] Error saving image to local storage.', localError);
+                console.error('Ocorreu um erro grave', localError);
                 throw localError; // Re-throw the error to be caught by the UI
             }
         }
@@ -189,15 +229,4 @@ export const StorageService = {
             throw error;
         }
     },
-
-    // Helper to resolve image URLs (needed for local blobs)
-    resolveImageUrl: async (url) => {
-        console.log(`[StorageService] resolveImageUrl called with URL: ${url}`);
-        if (url && url.startsWith('local-image://')) {
-            console.log('[StorageService] Detected local-image scheme, delegating to LocalStorageService.');
-            return await LocalStorageService.resolveImageUrl(url);
-        }
-        console.log('[StorageService] URL is not a local-image scheme, returning original URL.');
-        return url;
-    }
 };

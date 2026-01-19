@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { StorageService } from '../../services/StorageService';
 import { SettingsService } from '../../services/SettingsService';
 import { generateReport } from '../../utils/PDFGenerator';
+import { useStorageMode } from '../Settings/useStorageMode';
 
 export const useReports = () => {
     const { currentUser } = useAuth();
@@ -11,6 +12,7 @@ export const useReports = () => {
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const reportId = searchParams.get('id');
+    const { storageMode } = useStorageMode();
 
     // States for both list and form
     const [reports, setReports] = useState([]);
@@ -79,7 +81,7 @@ export const useReports = () => {
     const deleteReport = async (id) => {
         if (window.confirm('Tem certeza que deseja excluir este relatório?')) {
             try {
-                await StorageService.deleteReport(id);
+                await StorageService.deleteReport(id, currentUser.uid);
                 setReports(prev => prev.filter(r => r.id !== id));
             } catch (err) {
                 setError('Erro ao excluir relatório.');
@@ -98,9 +100,16 @@ export const useReports = () => {
         try {
             const reportData = { ...formData, status: 'draft' };
             const savedReportId = await StorageService.saveReport(currentUser.uid, reportData, formData.id);
-            setFormData(prev => ({ ...prev, id: savedReportId }));
-            setInitialFormData(prev => ({ ...prev, ...reportData, id: savedReportId }));
-            alert('Rascunho salvo na nuvem com sucesso!');
+            
+            const finalData = { ...reportData, id: savedReportId };
+            setFormData(finalData);
+            setInitialFormData(finalData);
+            
+            const message = storageMode === 'cloud'
+                ? 'Rascunho salvo na nuvem com sucesso!'
+                : 'Rascunho salvo localmente com sucesso!';
+            alert(message);
+
         } catch (err) {
             setError('Erro ao salvar rascunho.');
             console.error(err);
@@ -116,8 +125,10 @@ export const useReports = () => {
             if (currentUser) {
                 const reportData = { ...formData, status: 'completed' };
                 const savedReportId = await StorageService.saveReport(currentUser.uid, reportData, formData.id);
-                setFormData(prev => ({ ...prev, id: savedReportId }));
-                setInitialFormData(prev => ({ ...prev, ...reportData, id: savedReportId }));
+
+                const finalData = { ...reportData, id: savedReportId };
+                setFormData(finalData);
+                setInitialFormData(finalData);
             }
 
             // Fetch configs

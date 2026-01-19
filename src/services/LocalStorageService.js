@@ -95,13 +95,44 @@ export const LocalStorageService = {
 
     async deleteReport(id) {
         const db = await this.openDB();
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction([STORES.REPORTS], 'readwrite');
-            const store = transaction.objectStore(STORES.REPORTS);
-            const request = store.delete(id);
+        
+        // Get the report first to find associated images
+        const report = await this.getReport(id);
 
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORES.REPORTS, STORES.IMAGES], 'readwrite');
+            const reportsStore = transaction.objectStore(STORES.REPORTS);
+            const imagesStore = transaction.objectStore(STORES.IMAGES);
+
+            // Delete associated images found in the report
+            if (report && report.attachments && Array.isArray(report.attachments)) {
+                report.attachments.forEach(attachment => {
+                    if (attachment.url && attachment.url.startsWith('local-image://')) {
+                        const imageId = attachment.url.split('local-image://')[1];
+                        if (imageId) {
+                            console.log(`[LocalStorageService] Deleting image ${imageId} from IndexedDB.`);
+                            imagesStore.delete(imageId);
+                        }
+                    }
+                });
+            }
+
+            // Delete the report itself
+            const deleteReportRequest = reportsStore.delete(id);
+
+            deleteReportRequest.onerror = (err) => {
+                console.error("Error deleting report from IndexedDB:", err);
+            };
+
+            transaction.oncomplete = () => {
+                console.log(`[LocalStorageService] Report ${id} and associated images deleted.`);
+                resolve();
+            };
+
+            transaction.onerror = () => {
+                console.error("Error in delete transaction:", transaction.error);
+                reject(transaction.error);
+            };
         });
     },
 

@@ -42,6 +42,7 @@
 
 .sync-button-icon {
     font-size: 1.5rem;
+    color: var(--color-text-primary)
 }
 
 .sync-button-title {

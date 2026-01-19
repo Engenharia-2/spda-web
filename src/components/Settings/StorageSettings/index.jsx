@@ -1,5 +1,6 @@
 import React from 'react';
 import './styles.css';
+import { Cloudy, MonitorSmartphone } from 'lucide-react';
 
 const StorageSettings = ({ storageMode, onStorageModeChange, isFreePlan }) => {
     return (
@@ -14,14 +15,14 @@ const StorageSettings = ({ storageMode, onStorageModeChange, isFreePlan }) => {
                     disabled={isFreePlan}
                     className={`storage-option-button ${storageMode === 'cloud' ? 'selected' : ''}`}
                 >
-                    <div className="storage-option-title">☁️ Nuvem (Cloud) {isFreePlan && '🔒'}</div>
+                    <div className="storage-option-title"><Cloudy />{isFreePlan && '🔒'}</div>
                     <div className="storage-option-description">Acesse de qualquer lugar. Requer internet.</div>
                 </button>
                 <button
                     onClick={() => onStorageModeChange('local')}
                     className={`storage-option-button ${storageMode === 'local' ? 'selected' : ''}`}
                 >
-                    <div className="storage-option-title">💻 Local (Offline)</div>
+                    <div className="storage-option-title"><MonitorSmartphone /></div>
                     <div className="storage-option-description">Salvo apenas neste dispositivo. Funciona sem internet.</div>
                 </button>
             </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import './styles.css';
-
+import { CloudUpload, MonitorDown } from 'lucide-react';
 const DataSync = ({ syncing, syncProgress, onSyncLocalToCloud, onSyncCloudToLocal, isFreePlan }) => {
     return (
         <div className="settings-section">
@@ -10,14 +10,15 @@ const DataSync = ({ syncing, syncProgress, onSyncLocalToCloud, onSyncCloudToLoca
             </p>
             <div className="sync-options">
                 <button onClick={onSyncLocalToCloud} disabled={syncing || isFreePlan} className="sync-button">
-                    <span className="sync-button-icon">☁️⬆️</span>
+                    <CloudUpload className="sync-button-icon" />
                     <div className="sync-button-text">
                         <div className="sync-button-title">Enviar para Nuvem (Upload) {isFreePlan && '🔒'}</div>
                         <div className="description">Copia seus relatórios locais para o servidor. (Requer Pro)</div>
                     </div>
                 </button>
                 <button onClick={onSyncCloudToLocal} disabled={syncing} className="sync-button">
-                    <span className="sync-button-icon">💻⬇️</span>
+                    <MonitorDown className="sync-button-icon" />
+                    {/* <span className="sync-button-icon">💻⬇️</span> */}
                     <div className="sync-button-text">
                         <div className="sync-button-title">Baixar para Local (Download)</div>
                         <div className="description">Baixa seus relatórios da nuvem para este dispositivo.</div>

@@ -1,39 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { ClientService } from '../../services/ClientService';
-import { useReports } from '../../hooks/Report/useReports';
 import StatCard from '../../components/Dashboard/StatCard';
 import ReportList from '../../components/Report/ReportList';
 import './styles.css';
+import { Calendar, HardDrive, FileText } from 'lucide-react';
+import { useDashboardStats } from '../../hooks/Dashboard/useDashboardStats';
 
 const Dashboard = () => {
-    const { currentUser } = useAuth();
-    const {
-        filteredReports: reports,
-        listLoading: loading,
-        deleteReport
-    } = useReports();
+    const { isLoading, stats, currentUser, deleteReport } = useDashboardStats();
 
-    const [clientsCount, setClientsCount] = useState(0);
-
-    // Fetch clients count for dashboard statistics
-    useEffect(() => {
-        const fetchClients = async () => {
-            if (currentUser) {
-                try {
-                    const clientsData = await ClientService.getUserClients(currentUser.uid);
-                    setClientsCount(clientsData.length);
-                } catch (error) {
-                    console.error('Error fetching clients:', error);
-                }
-            }
-        };
-        fetchClients();
-    }, [currentUser]);
-
-    const completedReports = reports.filter(r => r.status === 'completed').length;
-    const pendingReports = reports.filter(r => r.status === 'draft').length;
+    if (isLoading) {
+        return (
+            <div className="container">
+                <div className="header">
+                    <h1 className="page-title">Visão Geral</h1>
+                </div>
+                <p>Carregando estatísticas...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="container">
@@ -51,31 +36,31 @@ const Dashboard = () => {
 
             <div className="stats-grid">
                 <StatCard
-                    title="Laudos Emitidos"
-                    value={completedReports}
-                    icon="📄"
-                    trend="+0%"
-                    trendUp={true}
+                    title="Laudos Emitidos no Mês"
+                    value={stats.reportsThisMonth}
+                    icon={<FileText />}
+                    trend={stats.reportTrend}
+                    trendUp={stats.reportTrendUp}
                 />
                 <StatCard
-                    title="Clientes Ativos"
-                    value={clientsCount}
-                    icon="🏢"
-                    trend="0"
-                    trendUp={true}
+                    title="Uso do Armazenamento"
+                    value={stats.storage.usagePercentage}
+                    icon={<HardDrive />}
+                    borderColor={stats.storage.borderColor}
                 />
-                <StatCard
-                    title="Ações Pendentes"
-                    value={pendingReports}
-                    icon="⚠️"
-                    trend="0"
-                    trendUp={true}
-                />
+                {stats.displayedEquipment && (
+                    <StatCard
+                        title={`Validade: ${stats.displayedEquipment.equipmentName}`}
+                        value={stats.validityStatus.value}
+                        icon={<Calendar />}
+                        borderColor={stats.validityStatus.borderColor}
+                    />
+                )}
             </div>
 
             <ReportList
-                reports={reports}
-                loading={loading}
+                reports={stats.reports}
+                loading={isLoading}
                 onDelete={deleteReport}
                 variant="dashboard"
             />

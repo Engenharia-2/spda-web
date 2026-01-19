@@ -1,0 +1,30 @@
+rules_version = '2';
+
+// Craft rules based on data in your Storage Bucket
+// See https://firebase.google.com/docs/storage/security for more information
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Regras para pastas de relatórios
+    // Estrutura: reports/{userId}/{reportId}/attachments/{filename}
+    match /reports/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Regras para configurações de usuário e assinaturas
+    // Estrutura: settings/{userId}/{filename}
+    match /settings/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Regra genérica para outros uploads (se houver)
+    match /uploads/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Permitir leitura pública se necessário (ex: logos globais), se for o caso
+    // match /public/{allPaths=**} {
+    //   allow read: if true;
+    // }
+  }
+}

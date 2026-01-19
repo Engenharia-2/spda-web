@@ -16,15 +16,14 @@ const BuildingData = ({ data, updateData }) => {
         <div className="building-data-container">
             <div className="form-field">
                 <label className="form-label">Endereço Completo</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="address-field-group">
                     <input
                         type="text"
                         name="address"
                         value={data.address || ''}
                         onChange={handleChange}
                         placeholder="Rua, Número, Bairro, Cidade - UF"
-                        className="form-input"
-                        style={{ flex: 1 }}
+                        className="form-input address-input"
                     />
                     <LocationButton onLocationFound={handleLocationFound} />
                 </div>

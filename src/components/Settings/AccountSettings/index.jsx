@@ -21,7 +21,7 @@ const AccountSettings = () => {
 
     return (
         <div className="settings-section">
-            <h2 className="section-title">Segurança da Conta</h2>
+            <h2 className="section-title">Trocar de senha</h2>
             <p className="section-description">
                 Altere sua senha de acesso à plataforma.
             </p>

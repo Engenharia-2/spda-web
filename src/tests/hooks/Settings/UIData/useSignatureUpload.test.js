@@ -4,8 +4,10 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 // Hoisted Mocks
 const mocks = vi.hoisted(() => ({
     StorageService: {
-        resolveImageUrl: vi.fn(),
         uploadImage: vi.fn()
+    },
+    ImageProcessor: {
+        resolveImageUrl: vi.fn()
     },
     useAuth: vi.fn(),
     currentUser: { uid: '123' }
@@ -14,6 +16,10 @@ const mocks = vi.hoisted(() => ({
 // Mock Dependencies
 vi.mock('../../../../services/StorageService', () => ({
     StorageService: mocks.StorageService
+}));
+
+vi.mock('../../../../utils/ImageProcessor', () => ({
+    resolveImageUrl: mocks.ImageProcessor.resolveImageUrl
 }));
 
 vi.mock('../../../../contexts/AuthContext', () => ({
@@ -31,27 +37,28 @@ describe('useSignatureUpload', () => {
         mocks.useAuth.mockReturnValue({ currentUser: mocks.currentUser });
     });
 
-    it('deve resolver URL local ao inicializar', async () => {
+    it('deve resolver URL ao inicializar', async () => {
         const data = { signature: 'local-image://test.png' };
-        mocks.StorageService.resolveImageUrl.mockResolvedValue('blob:test.png');
+        mocks.ImageProcessor.resolveImageUrl.mockResolvedValue('blob:test.png');
 
         const { result } = renderHook(() => useSignatureUpload(data, mockOnSignatureChange));
 
         await waitFor(() => {
             expect(result.current.signatureUrl).toBe('blob:test.png');
         });
-        expect(mocks.StorageService.resolveImageUrl).toHaveBeenCalledWith('local-image://test.png');
+        expect(mocks.ImageProcessor.resolveImageUrl).toHaveBeenCalledWith('local-image://test.png');
     });
 
-    it('deve usar URL direta se não for local', async () => {
+    it('deve usar URL direta se não for para resolver', async () => {
         const data = { signature: 'http://test.png' };
-
+        mocks.ImageProcessor.resolveImageUrl.mockResolvedValue('http://test.png');
+        
         const { result } = renderHook(() => useSignatureUpload(data, mockOnSignatureChange));
 
         await waitFor(() => {
             expect(result.current.signatureUrl).toBe('http://test.png');
         });
-        expect(mocks.StorageService.resolveImageUrl).not.toHaveBeenCalled();
+        expect(mocks.ImageProcessor.resolveImageUrl).toHaveBeenCalledWith('http://test.png');
     });
 
     it('deve salvar assinatura do canvas', async () => {
@@ -73,7 +80,6 @@ describe('useSignatureUpload', () => {
 
         expect(mocks.StorageService.uploadImage).toHaveBeenCalled();
         expect(mockOnSignatureChange).toHaveBeenCalledWith(uploadedUrl);
-        expect(result.current.signatureUrl).toBe(uploadedUrl);
         expect(alertSpy).toHaveBeenCalledWith('Assinatura salva com sucesso!');
         expect(result.current.uploading).toBe(false);
     });
@@ -93,7 +99,6 @@ describe('useSignatureUpload', () => {
 
         expect(mocks.StorageService.uploadImage).toHaveBeenCalledWith(file, expect.stringContaining('123/signature_upload_'));
         expect(mockOnSignatureChange).toHaveBeenCalledWith(uploadedUrl);
-        expect(result.current.signatureUrl).toBe(uploadedUrl);
     });
 
     it('deve remover assinatura', () => {

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useChecklistSettings } from '../../../../hooks/Settings/ReportData/useChecklistSettings';
 import { useChecklistReport } from '../../../../hooks/Report/useChecklistReport';
-import { StorageService } from '../../../../services/StorageService';
+import { resolveImageUrl } from '../../../../utils/ImageProcessor';
 import { useAuth } from '../../../../contexts/AuthContext';
 import './styles.css';
 
@@ -102,11 +102,11 @@ const ChecklistPhoto = ({ photo, onRemove }) => {
 
     useEffect(() => {
         const loadSrc = async () => {
-            if (photo.url && photo.url.startsWith('local-image://')) {
-                const resolved = await StorageService.resolveImageUrl(photo.url);
+            if (photo.url) {
+                const resolved = await resolveImageUrl(photo.url);
                 setSrc(resolved);
             } else {
-                setSrc(photo.url);
+                setSrc(null);
             }
         };
         loadSrc();
@@ -114,11 +114,13 @@ const ChecklistPhoto = ({ photo, onRemove }) => {
 
     return (
         <div className="checklist-photo-container">
-            <img
-                src={src}
-                alt="Preview"
-                className="checklist-photo"
-            />
+            {src && (
+                <img
+                    src={src}
+                    alt="Preview"
+                    className="checklist-photo"
+                />
+            )}
             <button
                 onClick={onRemove}
                 className="remove-photo-button"

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { StorageService } from '../../services/StorageService';
 import { LocalStorageService } from '../../services/LocalStorageService';
+import { compressImage } from '../../utils/ImageProcessor';
 
 // Mocks
 const mocks = vi.hoisted(() => ({
-    imageCompression: vi.fn((file) => Promise.resolve(file)), // Return same file
     uploadBytes: vi.fn(),
     getDownloadURL: vi.fn(),
     ref: vi.fn(),
@@ -23,8 +23,8 @@ const mocks = vi.hoisted(() => ({
     storage: {}
 }));
 
-vi.mock('browser-image-compression', () => ({
-    default: mocks.imageCompression
+vi.mock('../../utils/ImageProcessor', () => ({
+    compressImage: vi.fn(file => Promise.resolve(file)),
 }));
 
 vi.mock('../../services/LocalStorageService', () => ({
@@ -34,7 +34,7 @@ vi.mock('../../services/LocalStorageService', () => ({
         getReport: vi.fn(),
         deleteReport: vi.fn(),
         saveImage: vi.fn(),
-        resolveImageUrl: vi.fn()
+        resolveImageUrl: vi.fn() // Keep for other mocks that might need it
     }
 }));
 
@@ -95,41 +95,29 @@ describe('StorageService', () => {
     });
 
     describe('uploadImage', () => {
-        it('deve salvar imagem localmente no modo local', async () => {
+        it('deve chamar compressImage e salvar localmente no modo local', async () => {
             localStorage.setItem('storageMode', 'local');
             const file = new File([''], 'img.png', { type: 'image/png' });
             LocalStorageService.saveImage.mockResolvedValue({ url: 'local-url' });
 
             const result = await StorageService.uploadImage(file);
 
+            expect(compressImage).toHaveBeenCalledWith(file);
             expect(LocalStorageService.saveImage).toHaveBeenCalled();
             expect(result).toEqual({ url: 'local-url' });
         });
 
-        it('deve fazer upload para o firebase no modo cloud', async () => {
+        it('deve chamar compressImage e fazer upload para o firebase no modo cloud', async () => {
             const file = new File([''], 'img.png', { type: 'image/png' });
             mocks.uploadBytes.mockResolvedValue({ ref: { fullPath: 'path/img.png' } });
             mocks.getDownloadURL.mockResolvedValue('http://firebase/img.png');
 
             const result = await StorageService.uploadImage(file);
-
+            
+            expect(compressImage).toHaveBeenCalledWith(file);
             expect(mocks.uploadBytes).toHaveBeenCalled();
             expect(mocks.getDownloadURL).toHaveBeenCalled();
             expect(result.url).toBe('http://firebase/img.png');
-            expect(mocks.imageCompression).toHaveBeenCalled();
-        });
-    });
-
-    describe('resolveImageUrl', () => {
-        it('deve delegar para LocalStorageService se local-image://', async () => {
-            await StorageService.resolveImageUrl('local-image://123');
-            expect(LocalStorageService.resolveImageUrl).toHaveBeenCalledWith('local-image://123');
-        });
-
-        it('deve retornar URL original se http', async () => {
-            const result = await StorageService.resolveImageUrl('http://google.com');
-            expect(result).toBe('http://google.com');
-            expect(LocalStorageService.resolveImageUrl).not.toHaveBeenCalled();
         });
     });
 });

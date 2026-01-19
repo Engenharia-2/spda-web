@@ -21,7 +21,8 @@ export const useAuthObserver = () => {
                             ...user,
                             subscription: userData.subscription || 'free',
                             role: isAdmin ? 'admin' : (userData.role || 'user'),
-                            isPro: userData.subscription === 'pro'
+                            isPro: userData.subscription === 'pro',
+                            storage_usage_bytes: userData.storage_usage_bytes || 0, // Add this line
                         });
                     } else {
                         // Add small delay to avoid race condition with signup process

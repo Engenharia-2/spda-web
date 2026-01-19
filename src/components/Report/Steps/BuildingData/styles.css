@@ -26,6 +26,7 @@
     color: var(--color-text-primary);
     outline: none;
     width: 100%;
+    font-size: 1rem; /* Consistência no tamanho da fonte */
 }
 
 .form-textarea {
@@ -39,8 +40,30 @@
     gap: var(--spacing-md);
 }
 
+.address-field-group {
+    display: flex;
+    flex-direction: column; /* Stacked on mobile by default */
+    gap: 10px;
+}
+
+.address-input {
+    width: 100%; /* Full width on mobile */
+}
+
+
 @media (max-width: 768px) {
     .grid-container {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 769px) {
+    .address-field-group {
+        flex-direction: row; /* Side-by-side on larger screens */
+        align-items: center;
+    }
+
+    .address-input {
+        flex: 1; /* Takes available space on larger screens */
     }
 }

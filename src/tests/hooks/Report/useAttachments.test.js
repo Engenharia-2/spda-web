@@ -165,7 +165,7 @@ describe('useAttachments', () => {
             await result.current.handleFileChange(event);
         });
 
-        expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Ocorreu um erro grave'));
+        expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Ocorreu um erro ao anexar as fotos'));
         expect(result.current.uploading).toBe(false);
     });
 });

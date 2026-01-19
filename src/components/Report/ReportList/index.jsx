@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import useResponsive from '../../../hooks/useResponsive';
 import { getMeasurementDate } from '../../../utils/reportUtils';
+import { Pencil, X, Trash2 } from 'lucide-react';
 import './styles.css';
 
 const ReportList = ({
@@ -106,14 +107,14 @@ const ReportList = ({
                         <div className="mobile-card-actions">
                             <Link to={`/new-report?id=${report.id}`} style={{ textDecoration: 'none' }}>
                                 <button className="mobile-action-btn mobile-btn-edit">
-                                    ✏️
+                                    <Pencil />
                                 </button>
                             </Link>
                             <button
                                 onClick={() => onDelete && onDelete(report.id)}
                                 className="mobile-action-btn mobile-btn-delete"
                             >
-                                🗑️
+                                <Trash2 />
                             </button>
                         </div>
                     </div>

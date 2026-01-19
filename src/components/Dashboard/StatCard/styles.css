@@ -7,6 +7,11 @@
     flex: 1;
 }
 
+.stat-card:hover {
+    box-shadow: var(--shadow-lt);
+}
+
+
 .stat-header {
     display: flex;
     justify-content: space-between;
@@ -14,11 +19,16 @@
 }
 
 .stat-title {
+    font-weight: 700;
+    /* color: var(--color-text-muted);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-xs); */
+}
+.stat-text{
     color: var(--color-text-muted);
     font-size: 0.875rem;
     margin-bottom: var(--spacing-xs);
 }
-
 .stat-value {
     font-size: 2rem;
     font-weight: 700;
