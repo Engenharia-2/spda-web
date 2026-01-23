@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import useResponsive from '../../../../hooks/useResponsive';
 import useQRCodeScanner from '../../../../hooks/Report/useQRCodeScanner';
 import { useMeasurementData } from '../../../../hooks/Report/useMeasurementData';
 import QRCodeScanner from '../QRCodeScanner';
-import { formatUnit } from '../../../../utils/formatters';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { MeasurementService } from '../../../../services/MeasurementService';
 import './styles.css';
+
+import MeasurementList from '../../../../components/Measurement/MeasurementList';
 
 const MeasurementData = ({ data, updateData }) => {
     const {
@@ -14,6 +17,8 @@ const MeasurementData = ({ data, updateData }) => {
         handleFileUpload
     } = useMeasurementData(updateData);
 
+    const { currentUser } = useAuth();
+    const [allMeasurements, setAllMeasurements] = useState([]);
     const { isMobileDevice } = useResponsive();
 
     const {
@@ -25,6 +30,33 @@ const MeasurementData = ({ data, updateData }) => {
         startScanner,
         closeScanner,
     } = useQRCodeScanner({ onScanComplete: (scannedData) => updateData({ measurements: scannedData }) });
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            if (currentUser) {
+                try {
+                    const initialData = await MeasurementService.getUserMeasurements(currentUser.uid);
+                    setAllMeasurements(initialData);
+                } catch (error) {
+                    console.error(`Erro ao carregar medições iniciais: ${error.message}`);
+                }
+            }
+        };
+        fetchInitialData();
+    }, [currentUser]);
+
+    const handleSelectGroupForReport = (group) => {
+        if (group && group.points) {
+            const reportData = group.points.map(point => ({
+                grupo: point.group,
+                ponto: point.point,
+                resistencia: point.resistance,
+                corrente: point.current,
+                dataHora: point.timestamp?.toDate ? point.timestamp.toDate().toLocaleString() : new Date(point.timestamp).toLocaleString()
+            }));
+            updateData({ measurements: { parsedData: reportData } });
+        }
+    };
 
     return (
         <div className="measurement-data-container">
@@ -99,45 +131,11 @@ const MeasurementData = ({ data, updateData }) => {
                 </div>
             )}
 
-            {data.measurements && data.measurements.parsedData && (
-                <div className="imported-data-container">
-                    <div className="imported-data-header">
-                        <h3 className="imported-data-title">Dados Importados</h3>
-                        <span className="imported-data-count">
-                            {data.measurements.parsedData.length} medições
-                        </span>
-                    </div>
-
-                    <div className="data-table-container">
-                        <table className="data-table">
-                            <thead>
-                                <tr className="data-table-header">
-                                    <th className="data-table-header-cell">Grupo</th>
-                                    <th className="data-table-header-cell">Ponto</th>
-                                    <th className="data-table-header-cell">Resistência</th>
-                                    <th className="data-table-header-cell">Corrente</th>
-                                    <th className="data-table-header-cell">Data/Hora</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.measurements.parsedData.map((item, index) => (
-                                    <tr key={index} className="data-table-row">
-                                        <td className="data-table-cell">{item.grupo !== undefined ? item.grupo : '-'}</td>
-                                        <td className="data-table-cell">{item.ponto !== undefined ? item.ponto : '-'}</td>
-                                        <td className="data-table-cell monospace-font">
-                                            {formatUnit(item.resistencia, 'Ω')}
-                                        </td>
-                                        <td className="data-table-cell monospace-font">
-                                            {formatUnit(item.corrente, 'A')}
-                                        </td>
-                                        <td className="data-table-cell">{item.dataHora || '-'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+            <MeasurementList 
+                data={allMeasurements} 
+                showTitle={false} 
+                onSelectGroup={handleSelectGroupForReport}
+            />
         </div>
     );
 };

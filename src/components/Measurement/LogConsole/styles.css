@@ -1,0 +1,79 @@
+/* src/components/Measurement/LogConsole/styles.css */
+
+.log-console-container {
+    background-color: var(--color-bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    height: 600px; /* Or adjust as needed */
+}
+
+.log-console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.panel-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0; /* Override parent margin-bottom */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.log-console-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.view-mode-select {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
+.log-action-button {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.log-viewer {
+    flex: 1;
+    background-color: #000;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: #0f0;
+}
+
+.log-line {
+    margin-bottom: 0.25rem;
+}
+.log-line.log-line--empty {
+    color: #666;
+}
+.log-line.log-line--error { color: #ef4444; }
+.log-line.log-line--success { color: #22c55e; }
+.log-line.log-line--rx { color: #3b82f6; }
+.log-line.log-line--tx { color: #eab308; }
+.log-line.log-line--info { color: #0f0; } /* Default color */
+
+.log-timestamp {
+    color: #666;
+    margin-right: 0.5rem;
+}

@@ -1,0 +1,52 @@
+/* src/components/Measurement/RawHexSender/styles.css */
+
+.panel-card {
+    background-color: var(--color-bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.panel-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.raw-hex-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.raw-hex-container .text-input {
+    flex: 1;
+}
+
+.text-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+}
+.text-input.mono {
+    font-family: var(--font-mono);
+}
+
+.raw-hex-send-button {
+    color: white;
+    border: none;
+    padding: 0 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    background-color: var(--color-accent-primary);
+}
+.raw-hex-send-button:disabled {
+    background-color: var(--color-bg-tertiary);
+    cursor: not-allowed;
+}

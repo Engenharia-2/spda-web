@@ -1,0 +1,74 @@
+/* src/components/Measurement/StructuredCommand/styles.css */
+
+.panel-card {
+    background-color: var(--color-bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.panel-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.structured-send-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.structured-send-grid .text-input {
+    text-align: center;
+}
+
+.input-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+}
+
+.text-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+}
+.text-input.mono {
+    font-family: var(--font-mono);
+}
+
+.panel-card-button {
+    width: 100%;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+.panel-card-button:disabled {
+    background-color: var(--color-bg-tertiary) !important;
+    cursor: not-allowed;
+}
+
+.panel-card-button.secondary {
+    background-color: var(--color-accent-secondary);
+}
+
+.packet-structure-note {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 0.5rem;
+}

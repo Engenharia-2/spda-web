@@ -1,0 +1,338 @@
+/* src/pages/Measurement/styles.css */
+
+.measurement-page-container {
+    padding: var(--spacing-xl);
+}
+
+/* Header */
+.measurement-page-header {
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+}
+
+.page-subtitle {
+    color: var(--color-text-muted);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* --- Buttons --- */
+.base-button {
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.base-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.connect-button {
+    background-color: var(--color-accent-primary);
+    color: white;
+}
+.connect-button:disabled {
+    background-color: var(--color-bg-tertiary);
+}
+
+.disconnect-button {
+    background-color: var(--color-error);
+    color: white;
+}
+
+/* Device Info Card */
+.device-info-card {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-accent-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.device-info-model {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.device-info-details {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    flex-wrap: wrap;
+}
+
+.device-info-ids {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+/* Main Grid Layout */
+.main-content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+}
+
+@media (min-width: 1024px) {
+    .main-content-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+/* Panel Cards */
+.panel-card {
+    background-color: var(--color-bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.panel-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.panel-card-button {
+    width: 100%;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+.panel-card-button:disabled {
+    background-color: var(--color-bg-tertiary) !important;
+    cursor: not-allowed;
+}
+
+.panel-card-button.primary {
+    background-color: var(--color-accent-primary);
+}
+.panel-card-button.secondary {
+    background-color: var(--color-accent-secondary);
+}
+.panel-card-button.success {
+    background-color: var(--color-success);
+}
+
+
+/* Specific Panel Content */
+.download-progress {
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.processed-data-container {
+    margin-top: 1rem;
+}
+
+.input-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+}
+
+.text-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+}
+.text-input.mono {
+    font-family: var(--font-mono);
+}
+
+.structured-send-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.structured-send-grid .text-input {
+    text-align: center;
+}
+
+.packet-structure-note {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 0.5rem;
+}
+
+.raw-hex-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.raw-hex-container .text-input {
+    flex: 1;
+}
+
+.raw-hex-send-button {
+    color: white;
+    border: none;
+    padding: 0 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    background-color: var(--color-accent-primary);
+}
+.raw-hex-send-button:disabled {
+    background-color: var(--color-bg-tertiary);
+    cursor: not-allowed;
+}
+
+.firmware-upload-area {
+    margin-bottom: 1.5rem;
+}
+.firmware-upload-area .file-input-container {
+    display: flex;
+    gap: 0.5rem;
+}
+.file-input {
+    flex: 1;
+    padding: 0.5rem;
+    background-color: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+}
+
+.upload-progress-container {
+    margin-bottom: 1.5rem;
+}
+.upload-progress-text {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+.progress-bar-background {
+    height: 8px;
+    background-color: var(--color-bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.progress-bar-foreground {
+    height: 100%;
+    background-color: var(--color-accent-primary);
+    transition: width 0.3s ease;
+}
+
+/* Log Console */
+.log-console-container {
+    background-color: var(--color-bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    height: 600px; /* Or adjust as needed */
+}
+
+.log-console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.log-console-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.view-mode-select {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
+.log-action-button {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.log-viewer {
+    flex: 1;
+    background-color: #000;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: #0f0;
+}
+
+.log-line {
+    margin-bottom: 0.25rem;
+}
+.log-line.log-line--empty {
+    color: #666;
+}
+.log-line.log-line--error { color: #ef4444; }
+.log-line.log-line--success { color: #22c55e; }
+.log-line.log-line--rx { color: #3b82f6; }
+.log-line.log-line--tx { color: #eab308; }
+.log-line.log-line--info { color: #0f0; } /* Default color */
+
+.log-timestamp {
+    color: #666;
+    margin-right: 0.5rem;
+}
