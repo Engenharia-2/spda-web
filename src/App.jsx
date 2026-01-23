@@ -14,6 +14,7 @@ import ClientList from './pages/Clients/ClientList';
 import ClientForm from './pages/Clients/ClientForm';
 import Settings from './pages/Settings';
 import UserManagement from './pages/Admin';
+import Measurement from './pages/Measurement';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -35,6 +36,7 @@ const router = createBrowserRouter(
         <Route path="/clients" element={<ClientList />} />
         <Route path="/client-form" element={<ClientForm />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/measurement" element={<Measurement />} />
       </Route>
 
       {/* Admin Routes */}

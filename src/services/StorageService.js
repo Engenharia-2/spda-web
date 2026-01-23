@@ -47,6 +47,33 @@ const deleteFolderContents = async (path) => {
     }
 };
 
+// Helper function to handle the actual Firebase Storage upload logic
+const _uploadToCloud = async (processedFile, path) => {
+    const storagePath = path || `uploads/${Date.now()}_${processedFile.name}`;
+    const storageRef = ref(storage, storagePath);
+
+    const uploadPromise = uploadBytes(storageRef, processedFile);
+    const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Upload timed out after 30 seconds')), 30000)
+    );
+
+    console.log('[StorageService] Awaiting upload to Firebase...');
+    const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
+    console.log('[StorageService] CLOUD upload completed, fetching URL...');
+
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    console.log('[StorageService] CLOUD URL fetched:', downloadURL);
+
+    return {
+        name: processedFile.name,
+        url: downloadURL,
+        path: snapshot.ref.fullPath,
+        type: processedFile.type,
+        size: processedFile.size,
+        uploadedAt: new Date().toISOString()
+    };
+};
+
 export const StorageService = {
     // Save a new report or update an existing one
     saveReport: async (userId, reportData, reportId = null) => {
@@ -128,9 +155,76 @@ export const StorageService = {
         }
     },
 
+    // NEW - Save an array of measurements
+    saveMeasurements: async (userId, measurementData) => {
+        const mode = getStorageMode();
+        console.log(`[StorageService] saveMeasurements called in mode: "${mode}"`);
+
+        if (mode === 'local') {
+            return await LocalStorageService.saveMeasurements(userId, measurementData);
+        }
+        
+        // Cloud mode
+        if (!userId || !measurementData || measurementData.length === 0) {
+            throw new Error('User ID and measurement data are required for cloud save.');
+        }
+        try {
+            const batch = writeBatch(db);
+            const measurementsColRef = collection(db, 'measurements'); // Direct collection name
+
+            measurementData.forEach(measurement => {
+                const docRef = doc(measurementsColRef); // Create a new doc with a unique ID
+                batch.set(docRef, {
+                    ...measurement,
+                    userId,
+                    createdAt: serverTimestamp(),
+                });
+            });
+
+            await batch.commit();
+            console.log(`[StorageService] ${measurementData.length} measurements saved to CLOUD successfully.`);
+        } catch (error) {
+            console.error('Error saving measurements to CLOUD:', error);
+            throw error;
+        }
+    },
+
+    // NEW - Get all measurements for a user
+    getUserMeasurements: async (userId) => {
+        const mode = getStorageMode();
+        console.log(`[StorageService] getUserMeasurements called in mode: "${mode}"`);
+
+        if (mode === 'local') {
+            return await LocalStorageService.getUserMeasurements(userId);
+        }
+
+        // Cloud mode
+        if (!userId) {
+            throw new Error('User ID is required for cloud fetch.');
+        }
+        try {
+            const q = query(
+                collection(db, 'measurements'),
+                where('userId', '==', userId)
+            );
+
+            const querySnapshot = await getDocs(q);
+            const results = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            console.log(`[StorageService] Fetched ${results.length} measurements from CLOUD.`);
+            return results;
+        } catch (error) {
+            console.error('Error fetching user measurements from CLOUD:', error);
+            throw error;
+        }
+    },
+
     // Delete a report and its associated files
     deleteReport: async (reportId, userId) => {
         const mode = getStorageMode();
+
 
         if (mode === 'local') {
             return await LocalStorageService.deleteReport(reportId);
@@ -177,7 +271,7 @@ export const StorageService = {
         }
     },
 
-    // Upload a file
+    // Upload a file (respects storageMode)
     uploadImage: async (file, path) => {
         console.log(`[StorageService] uploadImage called for file: ${file.name}`);
         
@@ -201,31 +295,24 @@ export const StorageService = {
         // Cloud mode
         console.log('[StorageService] Starting CLOUD upload for:', processedFile.name, 'to path:', path);
         try {
-            const storagePath = path || `uploads/${Date.now()}_${processedFile.name}`;
-            const storageRef = ref(storage, storagePath);
-
-            const uploadPromise = uploadBytes(storageRef, processedFile);
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Upload timed out after 30 seconds')), 30000)
-            );
-
-            console.log('[StorageService] Awaiting upload to Firebase...');
-            const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
-            console.log('[StorageService] CLOUD upload completed, fetching URL...');
-
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            console.log('[StorageService] CLOUD URL fetched:', downloadURL);
-
-            return {
-                name: processedFile.name,
-                url: downloadURL,
-                path: snapshot.ref.fullPath,
-                type: processedFile.type,
-                size: processedFile.size,
-                uploadedAt: new Date().toISOString()
-            };
+            return await _uploadToCloud(processedFile, path);
         } catch (error) {
             console.error('[StorageService] CRITICAL: Error uploading file to CLOUD.', error);
+            throw error;
+        }
+    },
+
+    // Upload a profile photo (ALWAYS to cloud, ignores storageMode)
+    uploadProfilePhoto: async (file, path) => {
+        console.log(`[StorageService] uploadProfilePhoto called for file: ${file.name}`);
+        
+        const processedFile = await compressImage(file);
+
+        console.log('[StorageService] Starting profile photo CLOUD upload for:', processedFile.name, 'to path:', path);
+        try {
+            return await _uploadToCloud(processedFile, path);
+        } catch (error) {
+            console.error('[StorageService] CRITICAL: Error uploading profile photo to CLOUD.', error);
             throw error;
         }
     },

@@ -48,12 +48,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     //Verifica se o usuário está autenticado
+
     function isAuthenticated() {
       return request.auth != null;
     }
 
     // Verifica se o usuário é admin
-    // CORRIGIDO: Agora verifica o campo 'role' para corresponder à lógica da aplicação.
+    // Isso permite que você controle pelo Front-end quem é admin apenas editando o documento do usuário
     function isDbAdmin() {
        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }

@@ -1,9 +1,10 @@
 const DB_NAME = 'spda-reports-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bump version for schema change
 const STORES = {
     REPORTS: 'reports',
     IMAGES: 'images',
-    SETTINGS: 'settings'
+    SETTINGS: 'settings',
+    MEASUREMENTS: 'measurements', // New store
 };
 
 export const LocalStorageService = {
@@ -26,6 +27,10 @@ export const LocalStorageService = {
                 if (!db.objectStoreNames.contains(STORES.SETTINGS)) {
                     db.createObjectStore(STORES.SETTINGS, { keyPath: 'key' });
                 }
+                // Create new store for measurements
+                if (!db.objectStoreNames.contains(STORES.MEASUREMENTS)) {
+                    db.createObjectStore(STORES.MEASUREMENTS, { keyPath: 'id' });
+                }
             };
 
             request.onsuccess = (event) => {
@@ -37,6 +42,58 @@ export const LocalStorageService = {
                 console.error('[LocalStorageService] FATAL: Error opening database.', event.target.error);
                 reject('Error opening database: ' + event.target.error);
             };
+        });
+    },
+
+    // New function to save multiple measurements
+    async saveMeasurements(userId, measurements) {
+        const db = await this.openDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORES.MEASUREMENTS], 'readwrite');
+            const store = transaction.objectStore(STORES.MEASUREMENTS);
+
+            let completed = 0;
+            measurements.forEach(measurement => {
+                const dataToSave = {
+                    ...measurement,
+                    id: crypto.randomUUID(), // Ensure unique ID for each point
+                    userId,
+                    createdAt: new Date().toISOString(),
+                };
+                const request = store.put(dataToSave);
+                request.onsuccess = () => {
+                    completed++;
+                    if (completed === measurements.length) {
+                        resolve();
+                    }
+                };
+            });
+
+            transaction.oncomplete = () => {
+                console.log(`[LocalStorageService] Successfully saved ${measurements.length} measurements.`);
+                resolve();
+            };
+            transaction.onerror = () => {
+                console.error('[LocalStorageService] Error saving measurements transaction.', transaction.error);
+                reject(transaction.error);
+            };
+        });
+    },
+    
+    // New function to get measurements for a user
+    async getUserMeasurements(userId) {
+        const db = await this.openDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORES.MEASUREMENTS], 'readonly');
+            const store = transaction.objectStore(STORES.MEASUREMENTS);
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const allMeasurements = request.result;
+                const userMeasurements = allMeasurements.filter(m => m.userId === userId);
+                resolve(userMeasurements);
+            };
+            request.onerror = () => reject(request.error);
         });
     },
 

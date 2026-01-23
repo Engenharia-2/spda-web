@@ -1,7 +1,7 @@
 import React from 'react';
 import './styles.css';
 
-const StatCard = ({ title, value, icon, trend, trendUp, borderColor }) => {
+const StatCard = ({ title, subtitle, value, icon, trend, trendUp, borderColor }) => {
     const cardStyle = borderColor
         ? { border: `2px solid ${borderColor}` }
         : {};
@@ -11,6 +11,7 @@ const StatCard = ({ title, value, icon, trend, trendUp, borderColor }) => {
             <div className="stat-header">
                 <div>
                     <p className="stat-title">{title}</p>
+                    {/* <p className="stat-subtitle">{subtitle}</p> */}
                     <h3 className="stat-value">{value}</h3>
                 </div>
                 <div className="stat-icon">

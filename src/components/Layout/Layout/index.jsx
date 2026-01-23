@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../Sidebar/index';
 import Header from '../Header/index';
 import { useLayout } from '../../../contexts/LayoutContext';
@@ -8,6 +8,8 @@ import './styles.css';
 
 const Layout = () => {
     const { isMobile, isSidebarOpen, toggleSidebar } = useLayout();
+    const location = useLocation();
+    const isSettingsPage = location.pathname === '/settings';
 
     const sidebarWidth = isMobile ? '0px' : '260px';
 
@@ -26,7 +28,7 @@ const Layout = () => {
                     isMobile={isMobile}
                     onMenuClick={toggleSidebar}
                 />
-                <main className="main-content">
+                <main className={`main-content ${isSettingsPage ? 'no-padding' : ''}`}>
                     <Outlet />
                 </main>
             </div>
@@ -36,3 +38,4 @@ const Layout = () => {
 };
 
 export default Layout;
+

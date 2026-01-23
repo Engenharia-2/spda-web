@@ -76,7 +76,11 @@ const Header = ({ isMobile, onMenuClick }) => {
                         className="profile-btn"
                         title="Perfil do Usuário"
                     >
-                        <User size={20} />
+                        {currentUser?.photoURL ? (
+                            <img src={currentUser.photoURL} alt="Avatar" className="profile-avatar-icon" />
+                        ) : (
+                            <User size={20} />
+                        )}
                     </button>
 
                     {isDropdownOpen && (

@@ -7,6 +7,7 @@
 .settings-container {
     max-width: 600px;
     margin: 0 auto;
+    padding: var(--spacing-xl);
 }
 
 .settings-header {
@@ -34,6 +35,9 @@
     font-weight: 600;
     cursor: pointer;
     box-shadow: var(--shadow-glow);
+    width: 100%;
+    box-sizing: border-box;
+    ;
 }
 
 .save-button:disabled {
@@ -317,10 +321,6 @@
         gap: 1rem;
     }
 
-    .save-button {
-        width: 100%;
-    }
-
     .storage-options {
         flex-direction: column;
     }
@@ -332,4 +332,10 @@
     .add-item-button {
         width: 100%;
     }
+}
+
+.settings-footer {
+    margin-top: var(--spacing-xl);
+    display: flex;
+    justify-content: center;
 }

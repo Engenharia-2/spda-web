@@ -50,7 +50,8 @@ const Dashboard = () => {
                 />
                 {stats.displayedEquipment && (
                     <StatCard
-                        title={`Validade: ${stats.displayedEquipment.equipmentName}`}
+                        title={`Equipamento: ${stats.displayedEquipment.equipmentName}`}
+                        subtitle={'Validade:'}
                         value={stats.validityStatus.value}
                         icon={<Calendar />}
                         borderColor={stats.validityStatus.borderColor}

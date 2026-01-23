@@ -1,0 +1,64 @@
+/* src/components/Settings/ProfilePhotoSettings/styles.css */
+
+.photo-settings-container {
+    padding-bottom: 1.5rem; /* Adicionado padding para separar do próximo card */
+    border-bottom: 1px solid transparent; /* para que a linha não apareça se for o último item */
+}
+
+/* O estilo .settings-subtitle é agora .section-title, que já está em settings.css */
+
+.avatar-preview-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap; /* Permite que os itens quebrem a linha */
+}
+
+.avatar-preview {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #f0f0f0;
+    flex-shrink: 0; /* Impede que a imagem encolha em telas pequenas */
+}
+
+.photo-input {
+    display: none; /* O input real fica escondido */
+}
+
+.save-button { /* Usando o estilo global .save-button */
+    text-align: center; /* Centraliza o texto do botão */
+    width: 100%; /* Largura se ajusta ao conteúdo */
+    max-width: 500px; /* Limita a largura máxima do botão */
+    /* Garante que o padding venha do save-button global */
+}
+
+.save-button.disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.photo-instructions {
+    font-size: 0.9em;
+    color: var(--color-text-muted); /* Usar variável para consistência */
+    margin-top: 0.75rem;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .avatar-preview-container {
+        flex-direction: column;
+        align-items: center; /* Centraliza os itens na coluna */
+        gap: 1rem;
+    }
+
+    .save-button {
+        width: 100%; /* O botão ocupa a largura total em telas pequenas */
+        max-width: none; /* Remove o limite de largura */
+    }
+}
+

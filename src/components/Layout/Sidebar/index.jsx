@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import { LayoutDashboard, FileText, Users, Settings, Shield } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Settings, Shield, Omega} from 'lucide-react';
 import { useTheme } from '../../../contexts/ThemeContext/ThemeContext';
 import './styles.css';
 
@@ -15,6 +15,7 @@ const Sidebar = ({ isMobile, isOpen, onClose }) => {
         { label: 'Relatórios', icon: <FileText size={20} />, path: '/reports' },
         { label: 'Clientes', icon: <Users size={20} />, path: '/clients' },
         { label: 'Configurações', icon: <Settings size={20} />, path: '/settings' },
+        { label: 'Medições', icon: <Omega size={20} />, path: '/measurement' },
     ];
 
     if (currentUser && currentUser.role === 'admin') {

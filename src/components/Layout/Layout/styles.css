@@ -14,3 +14,7 @@
     padding: var(--spacing-xl);
     background-color: var(--color-bg-primary);
 }
+
+.main-content.no-padding {
+    padding: 0;
+}

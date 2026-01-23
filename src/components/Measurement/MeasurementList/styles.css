@@ -1,0 +1,161 @@
+/* General Container */
+.measurement-list-container {
+    width: 100%;
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.measurement-list-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+    color: var(--color-text-muted);
+}
+
+/* Loading and Empty States */
+.loading-container {
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-text-muted);
+}
+
+.error-state {
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-error);
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--color-error);
+    border-radius: var(--radius-md);
+}
+
+.measurement-empty-state {
+    padding: 3rem;
+    text-align: center;
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.measurement-empty-state p {
+    color: var(--color-text-primary);
+    font-weight: 500;
+    margin: 0;
+}
+
+.measurement-empty-state-subtitle {
+    color: var(--color-text-muted) !important;
+    font-size: 0.875rem;
+    margin-top: 0.5rem !important;
+}
+
+
+/* Table Styles */
+.measurement-table-container {
+    overflow-x: auto;
+}
+
+.measurement-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.measurement-table thead {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.measurement-table th {
+    padding: var(--spacing-md);
+    color: var(--color-text-muted);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.measurement-table tbody tr {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.measurement-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.measurement-table td {
+    padding: var(--spacing-md);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.measurement-table td[data-label="Grupo"] {
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.action-btn-view {
+    background-color: var(--color-accent-primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.action-btn-view:hover {
+    background-color: var(--color-accent-primary-hover);
+}
+
+
+/* Responsive table for mobile */
+@media (max-width: 768px) {
+    .measurement-table thead {
+        display: none;
+    }
+
+    .measurement-table, .measurement-table tbody, .measurement-table tr, .measurement-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .measurement-table tr {
+        margin-bottom: var(--spacing-md);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-sm);
+    }
+    
+    .measurement-table tbody tr {
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .measurement-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm);
+        border: none;
+        border-bottom: 1px solid var(--color-bg-tertiary);
+    }
+
+    .measurement-table td:last-child {
+        border-bottom: none;
+    }
+
+    .measurement-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--color-text-primary);
+        margin-right: var(--spacing-md);
+    }
+}

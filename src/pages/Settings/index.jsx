@@ -81,11 +81,6 @@ const Settings = () => {
                         {isDirty && activeTab === 'report' && <span style={{ color: 'orange', marginLeft: '10px' }}>(Alterações não salvas)</span>}
                     </p>
                 </div>
-                {activeTab === 'report' && (
-                    <button onClick={handleSaveAll} disabled={isSaving} className="save-button">
-                        {isSaving ? 'Salvando...' : 'Salvar Alterações'}
-                    </button>
-                )}
             </div>
 
             {/* Tab Navigation */}
@@ -147,6 +142,14 @@ const Settings = () => {
 
                     <ReportCustomization hookData={reportCustomizationHook} />
                 </>
+            )}
+            {/* Save Button */}
+            {activeTab === 'report' && (
+                <div className="settings-footer">
+                    <button onClick={handleSaveAll} disabled={isSaving} className="save-button">
+                        {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                    </button>
+                </div>
             )}
         </div>
     );

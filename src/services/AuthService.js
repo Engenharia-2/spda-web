@@ -8,6 +8,7 @@ import {
     reauthenticateWithCredential,
     EmailAuthProvider,
     deleteUser,
+    updateProfile,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { withTimeout } from '../utils/asyncUtils';
@@ -132,6 +133,13 @@ const reauthenticate = (currentPassword) => {
     return reauthenticateWithCredential(user, credential);
 };
 
+const updateUserProfile = (profileData) => {
+    const user = auth.currentUser;
+    if (!user) throw new Error('No user logged in');
+    // profileData deve ser um objeto como { displayName: "Jane Doe", photoURL: "https://example.com/jane-q-user/profile.jpg" }
+    return updateProfile(user, profileData);
+};
+
 export const AuthService = {
     signup,
     login,
@@ -139,4 +147,5 @@ export const AuthService = {
     resetPassword,
     updateUserPassword,
     reauthenticate,
+    updateUserProfile,
 };
