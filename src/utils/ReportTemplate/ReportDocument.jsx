@@ -354,7 +354,11 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                                 <View key={index} style={styles.tableRow} wrap={false}>
                                     <View style={styles.tableCol}><Text style={styles.tableCell}>{m.ponto || '-'}</Text></View>
                                     <View style={styles.tableCol}><Text style={styles.tableCell}>{formatResistance(m.resistencia)}</Text></View>
-                                    <View style={styles.tableCol}><Text style={styles.tableCell}>{m.corrente || '-'}</Text></View>
+                                    <View style={styles.tableCol}>
+                                        <Text style={styles.tableCell}>
+                                            {typeof m.corrente === 'number' ? m.corrente.toFixed(2) : (m.corrente || '-')}
+                                        </Text>
+                                    </View>
                                 </View>
                             ))}
                         </View>

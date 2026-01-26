@@ -2,13 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Power, PowerOff } from 'lucide-react';
 import { MeasurementService } from '../../services/MeasurementService';
-import { protocolService } from '../../services/ProtocolService';
+// protocolService is now only used by useCommandSender, so it can be removed from here if not used elsewhere
 
 // Custom Hooks
 import { useLogManager } from '../../hooks/Measurement/useLogManager';
 import useDeviceConnection from '../../hooks/Measurement/useDeviceConnection';
 import { useFirmwareUpdater } from '../../hooks/Measurement/useFirmwareUpdater';
 import { useMeasurementDownloader } from '../../hooks/Measurement/useMeasurementDownloader';
+import { useCommandSender } from '../../hooks/Measurement/useCommandSender'; // Import new hook
 
 // Components
 import MeasurementList from '../../components/Measurement/MeasurementList';
@@ -70,52 +71,13 @@ const DeviceManager = () => {
         handleFirmwareUpdate
     } = useFirmwareUpdater(isConnected, addLog);
 
+    // New hook for sending commands
+    const { sendHex, sendPacket } = useCommandSender(isConnected, sendRequest, addLog);
+
     useEffect(() => {
         addLog("Bem-vindo ao Gerenciador de Dispositivos.", "info");
         fetchMeasurements();
     }, [fetchMeasurements, addLog]);
-
-    // Thin wrappers that remain in the orchestrator
-    const handleSendHex = async (hexString) => {
-        if (!hexString || !isConnected) return;
-        const cleanHexString = hexString.replace(/\s/g, '');
-        if (cleanHexString.length % 2 !== 0) {
-            return addLog('Erro: Número ímpar de caracteres hexadecimais.', 'error');
-        }
-        const bytes = new Uint8Array(cleanHexString.length / 2);
-        for (let i = 0; i < cleanHexString.length; i += 2) {
-            bytes[i / 2] = parseInt(cleanHexString.substr(i, 2), 16);
-        }
-        try {
-            await sendRequest(protocolService.buildPacket(bytes), 'RAW_HEX');
-            addLog(`TX (Hex): ${hexString}`, 'tx', bytes);
-        } catch (error) {
-            addLog(`Erro ao enviar: ${error.message}`, 'error');
-        }
-    };
-
-    const handleSendPacket = async (cmdId, cmdData) => {
-        if (!cmdId || !isConnected) return;
-        const command = parseInt(cmdId, 16);
-        if (isNaN(command)) {
-            return addLog('Erro: ID do comando inválido.', 'error');
-        }
-        let dataBytes = [];
-        if (cmdData) {
-            const hexString = cmdData.replace(/\s/g, '');
-            if (hexString.length % 2 !== 0) {
-                return addLog('Erro: Dados inválidos (número ímpar de caracteres hex).', 'error');
-            }
-            for (let i = 0; i < hexString.length; i += 2) {
-                dataBytes.push(parseInt(hexString.substr(i, 2), 16));
-            }
-        }
-        try {
-            await sendRequest(protocolService.buildPacket(command, dataBytes), cmdId);
-        } catch (error) {
-            addLog(`Erro ao enviar pacote: ${error.message}`, 'error');
-        }
-    };
 
     return (
         <div className="measurement-page-container">
@@ -168,11 +130,11 @@ const DeviceManager = () => {
                     />
                     <StructuredCommand
                         isConnected={isConnected}
-                        onSendPacket={handleSendPacket}
+                        onSendPacket={sendPacket}
                     />
                     <RawHexSender
                         isConnected={isConnected}
-                        onSendHex={handleSendHex}
+                        onSendHex={sendHex}
                     />
                     <FirmwareUpdate
                         isConnected={isConnected}

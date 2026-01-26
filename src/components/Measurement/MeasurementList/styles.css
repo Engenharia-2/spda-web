@@ -67,7 +67,7 @@
 .measurement-table {
     width: 100%;
     border-collapse: collapse;
-    text-align: left;
+    text-align: center; /* Centralize text for table globally */
 }
 
 .measurement-table thead {
@@ -80,6 +80,7 @@
     font-weight: 600;
     font-size: 0.875rem;
     text-transform: uppercase;
+    text-align: center; /* Centralize text for headers */
 }
 
 .measurement-table tbody tr {
@@ -94,6 +95,7 @@
     padding: var(--spacing-md);
     color: var(--color-text-secondary);
     font-size: 0.9rem;
+    text-align: center; /* Centralize text for data cells */
 }
 
 .measurement-table td[data-label="Grupo"] {
@@ -142,6 +144,12 @@
     background-color: var(--color-error-hover); /* Darker red on hover */
 }
 
+.action-buttons-cell{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
 .detailed-view-header{
     display: flex;
     flex-direction: row;
@@ -162,8 +170,7 @@
     align-items: center;
     gap: 0.5rem;
     background-color: var(--color-accent-secondary);
-}
-
+}         
 .select-button{
     width: 40%;
     color: white;
@@ -180,51 +187,78 @@
 }
 /* Responsive table for mobile */
 @media (max-width: 768px) {
-    .measurement-table thead {
-        display: none;
+    .measurement-table {
+        width: 100%;
     }
 
-    .measurement-table, .measurement-table tbody, .measurement-table tr, .measurement-table td {
-        display: block;
+    .measurement-table thead {
+        display: none; /* Hide header on mobile for cleaner look if rows are flexed */
+    }
+
+    .measurement-table tbody {
+        display: flex;
+        flex-direction: column; /* Stack rows */
         width: 100%;
     }
 
     .measurement-table tr {
-        margin-bottom: var(--spacing-md);
+        display: flex;
+        flex-direction: row; /* Keep cells in a row */
+        flex-wrap: nowrap; /* Prevent wrapping */
+        width: 100%;
         border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-md);
         padding: var(--spacing-sm);
+        box-sizing: border-box; /* Include padding in width calculation */
+        gap: var(--spacing-sm); /* Add gap for spacing between cells */
     }
-    
-    .measurement-table tbody tr {
-        border-bottom: 1px solid var(--color-border);
+
+    .measurement-table th {
+        display: none; /* Hide individual th elements */
     }
 
     .measurement-table td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: var(--spacing-sm);
-        border: none;
-        border-bottom: 1px solid var(--color-bg-tertiary);
+        padding: var(--spacing-sm); /* Adjusted padding */
+        border: none; /* Remove individual cell borders */
+        box-sizing: border-box; /* Include padding in width calculation */
+        font-size: 0.8rem;
+        justify-content: center; /* Center content horizontally */
     }
 
-    .measurement-table td:last-child {
-        border-bottom: none;
+    /* Hide specific column */
+    .col-points-measured {
+        display: none;
+        flex-basis: 0; /* Ensure it takes no space in flex context */
+        max-width: 0;
+        padding: 0; /* Also remove padding */
     }
 
-    .measurement-table td::before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: var(--color-text-primary);
-        margin-right: var(--spacing-md);
+    /* Adjust widths for visible columns using flex-basis */
+    .measurement-table td:nth-child(1) { /* Grupo */
+        flex-basis: 30%;
+        max-width: 30%;
     }
+    .measurement-table td:nth-child(3) { /* Data da Medição */
+        flex-basis: 45%;
+        max-width: 45%;
+    }
+    .measurement-table td:nth-child(4) { /* Ações */
+        flex-basis: 25%;
+        max-width: 25%;
+        justify-content: flex-end; /* Align buttons to the right */
+    }
+    /* Special handling for data-label as it's not removed */
+    .measurement-table td[data-label]::before {
+        content: none; /* Ensure data-label content is hidden */
+    }
+
 
     /* Action buttons on mobile */
     .action-btn {
-        padding: 0.5rem; /* Smaller padding for icon-only buttons */
-        width: 38px; /* Fixed width for consistent sizing */
-        height: 38px; /* Fixed height for consistent sizing */
+        padding: 0.3rem; /* Even smaller padding for icon-only buttons */
+        width: 32px; /* Fixed width for consistent sizing */
+        height: 32px; /* Fixed height for consistent sizing */
         border-radius: 50%; /* Make them round */
         flex-shrink: 0; /* Prevent shrinking */
         display: flex;

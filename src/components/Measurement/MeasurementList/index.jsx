@@ -20,18 +20,18 @@ const TableView = ({ groupedMeasurements, handleViewDetails, onDeleteGroup }) =>
             <thead>
                 <tr>
                     <th>Grupo</th>
-                    <th>Pontos Medidos</th>
+                    <th className="col-points-measured">Pontos Medidos</th>
                     <th>Data da Medição</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
                 {groupedMeasurements.map((group) => (
-                    <tr key={group.id}>
+                    <tr key={group.id} >
                         <td data-label="Grupo">{group.id}</td>
-                        <td data-label="Pontos Medidos">{group.points.length}</td>
-                        <td data-label="Data">{group.date.toLocaleString()}</td>
-                        <td data-label="Ações">
+                        <td data-label="Pontos Medidos" className="col-points-measured">{group.points.length}</td>
+                        <td data-label="Data">{group.date.toLocaleDateString()}</td>
+                        <td data-label="Ações" className="action-buttons-cell">
                             <button className="action-btn action-btn-view" onClick={() => handleViewDetails(group)}>
                                 <span className="action-btn-text">Ver Detalhes</span>
                                 <Eye size={16} className="action-btn-icon" />
