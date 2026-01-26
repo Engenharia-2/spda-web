@@ -53,7 +53,7 @@ export const useDashboardStats = () => {
                 setCurrentEquipmentIndex(prevIndex =>
                     (prevIndex + 1) % equipmentList.length
                 );
-            }, 30000);
+            }, 10000);
 
             return () => clearInterval(intervalId);
         }

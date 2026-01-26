@@ -9,7 +9,8 @@ import {
     query,
     where,
     serverTimestamp,
-    deleteDoc
+    deleteDoc,
+    writeBatch
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
 import { LocalStorageService } from './LocalStorageService';
@@ -155,37 +156,77 @@ export const StorageService = {
         }
     },
 
-    // NEW - Save an array of measurements
+    // NEW - Save/Upsert an array of measurements
     saveMeasurements: async (userId, measurementData) => {
-        const mode = getStorageMode();
-        console.log(`[StorageService] saveMeasurements called in mode: "${mode}"`);
+        if (!userId || !measurementData || measurementData.length === 0) {
+            throw new Error('User ID and measurement data are required for save.');
+        }
 
+        // Use a single function for the "upsert" logic
+        const groupIds = [...new Set(measurementData.map(m => m.group))];
+        await StorageService.deleteMeasurementsByGroup(userId, groupIds);
+        
+        const mode = getStorageMode();
         if (mode === 'local') {
             return await LocalStorageService.saveMeasurements(userId, measurementData);
         }
         
-        // Cloud mode
-        if (!userId || !measurementData || measurementData.length === 0) {
-            throw new Error('User ID and measurement data are required for cloud save.');
-        }
+        // Cloud mode - Save the new measurements
         try {
-            const batch = writeBatch(db);
-            const measurementsColRef = collection(db, 'measurements'); // Direct collection name
+            const saveBatch = writeBatch(db);
+            const measurementsColRef = collection(db, 'measurements');
 
             measurementData.forEach(measurement => {
-                const docRef = doc(measurementsColRef); // Create a new doc with a unique ID
-                batch.set(docRef, {
+                const docRef = doc(measurementsColRef);
+                saveBatch.set(docRef, {
                     ...measurement,
                     userId,
                     createdAt: serverTimestamp(),
                 });
             });
 
-            await batch.commit();
-            console.log(`[StorageService] ${measurementData.length} measurements saved to CLOUD successfully.`);
+            await saveBatch.commit();
+            console.log(`[StorageService] ${measurementData.length} new measurements saved to CLOUD successfully.`);
         } catch (error) {
-            console.error('Error saving measurements to CLOUD:', error);
+            console.error('Error saving new measurements to CLOUD:', error);
             throw error;
+        }
+    },
+
+    // NEW - Deletes all measurements for a user within specific groups
+    deleteMeasurementsByGroup: async (userId, groupIds) => {
+        if (!userId || !groupIds || groupIds.length === 0) {
+            console.log('[StorageService] Insufficient data to delete measurement groups.');
+            return;
+        }
+
+        const mode = getStorageMode();
+        console.log(`[StorageService] Deleting groups ${groupIds.join(', ')} in mode "${mode}"`);
+
+        if (mode === 'local') {
+            return await LocalStorageService.deleteMeasurementsByGroup(userId, groupIds);
+        }
+
+        // Cloud mode
+        const measurementsRef = collection(db, 'measurements');
+        const q = query(measurementsRef, where('userId', '==', userId), where('group', 'in', groupIds));
+        
+        try {
+            const querySnapshot = await getDocs(q);
+            if (querySnapshot.empty) {
+                console.log(`[StorageService] No existing cloud measurements found for groups: ${groupIds.join(', ')} to delete.`);
+                return;
+            }
+
+            const deleteBatch = writeBatch(db);
+            querySnapshot.forEach(doc => {
+                deleteBatch.delete(doc.ref);
+            });
+            await deleteBatch.commit();
+            console.log(`[StorageService] Deleted ${querySnapshot.size} existing cloud measurements for groups: ${groupIds.join(', ')}`);
+        } catch (error) {
+            console.error(`[StorageService] Error deleting cloud measurements by group:`, error);
+            throw error; // Re-throw to let the caller know something went wrong
         }
     },
 

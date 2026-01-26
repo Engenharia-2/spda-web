@@ -38,4 +38,19 @@ export const MeasurementService = {
             throw error;
         }
     },
+
+    /**
+     * Deletes measurement data for specific groups for a user.
+     * @param {string} userId - The ID of the user.
+     * @param {Array<number>} groupIds - An array of group numbers to delete.
+     * @returns {Promise<void>}
+     */
+    deleteMeasurementsByGroup: async (userId, groupIds) => {
+        try {
+            return await StorageService.deleteMeasurementsByGroup(userId, groupIds);
+        } catch (error) {
+            console.error('[MeasurementService] Error deleting measurements by group:', error);
+            throw error;
+        }
+    },
 };

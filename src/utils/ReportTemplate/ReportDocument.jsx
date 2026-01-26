@@ -122,7 +122,7 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
 
         },
         tableCol: {
-            width: '25%',
+            width: '33.33%',
             borderStyle: 'solid',
             borderWidth: 1,
             borderLeftWidth: 0,
@@ -343,14 +343,15 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                     {(data.measurements?.parsedData || []).length > 0 ? (
                         <View style={styles.table}>
                             <View style={[styles.tableRow, styles.tableHeader]} fixed>
-                                <View style={styles.tableCol}><Text style={styles.tableCell}>Grupo</Text></View>
                                 <View style={styles.tableCol}><Text style={styles.tableCell}>Ponto</Text></View>
                                 <View style={styles.tableCol}><Text style={styles.tableCell}>Resistência(Ω)</Text></View>
                                 <View style={styles.tableCol}><Text style={styles.tableCell}>Corrente (A)</Text></View>
                             </View>
-                            {data.measurements.parsedData.map((m, index) => (
+                            {data.measurements.parsedData
+                                .slice() // Create a shallow copy to avoid modifying the original array
+                                .sort((a, b) => (a.ponto || 0) - (b.ponto || 0)) // Sort by 'ponto' property
+                                .map((m, index) => (
                                 <View key={index} style={styles.tableRow} wrap={false}>
-                                    <View style={styles.tableCol}><Text style={styles.tableCell}>{m.grupo || '-'}</Text></View>
                                     <View style={styles.tableCol}><Text style={styles.tableCell}>{m.ponto || '-'}</Text></View>
                                     <View style={styles.tableCol}><Text style={styles.tableCell}>{formatResistance(m.resistencia)}</Text></View>
                                     <View style={styles.tableCol}><Text style={styles.tableCell}>{m.corrente || '-'}</Text></View>

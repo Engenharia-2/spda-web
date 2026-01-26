@@ -1,5 +1,8 @@
-import React, { useMemo, useState } from 'react';
-import { formatUnit } from '../../../utils/formatters'; // Assuming formatUnit is in this path
+import React, { useMemo, useState, useCallback } from 'react';
+import { formatUnit } from '../../../utils/formatters';
+import { useAuth } from '../../../contexts/AuthContext';
+import { MeasurementService } from '../../../services/MeasurementService';
+import { Eye, Trash2 } from 'lucide-react'; // Import icons
 import './styles.css';
 
 const EmptyState = () => (
@@ -11,7 +14,7 @@ const EmptyState = () => (
     </div>
 );
 
-const TableView = ({ groupedMeasurements, handleViewDetails }) => (
+const TableView = ({ groupedMeasurements, handleViewDetails, onDeleteGroup }) => (
     <div className="measurement-table-container">
         <table className="measurement-table">
             <thead>
@@ -29,8 +32,13 @@ const TableView = ({ groupedMeasurements, handleViewDetails }) => (
                         <td data-label="Pontos Medidos">{group.points.length}</td>
                         <td data-label="Data">{group.date.toLocaleString()}</td>
                         <td data-label="Ações">
-                            <button className="action-btn-view" onClick={() => handleViewDetails(group)}>
-                                Ver Detalhes
+                            <button className="action-btn action-btn-view" onClick={() => handleViewDetails(group)}>
+                                <span className="action-btn-text">Ver Detalhes</span>
+                                <Eye size={16} className="action-btn-icon" />
+                            </button>
+                            <button className="action-btn action-btn-delete" onClick={() => onDeleteGroup(group)}>
+                                <span className="action-btn-text">Excluir</span>
+                                <Trash2 size={16} className="action-btn-icon" />
                             </button>
                         </td>
                     </tr>
@@ -57,7 +65,6 @@ const DetailedView = ({ group, handleBackToList, onSelectGroup }) => (
             <table className="data-table">
                 <thead>
                     <tr className="data-table-header">
-                        <th className="data-table-header-cell">Grupo</th>
                         <th className="data-table-header-cell">Ponto</th>
                         <th className="data-table-header-cell">Resistência</th>
                         <th className="data-table-header-cell">Corrente</th>
@@ -65,9 +72,11 @@ const DetailedView = ({ group, handleBackToList, onSelectGroup }) => (
                     </tr>
                 </thead>
                 <tbody>
-                    {group.points.map((item, index) => (
+                    {group.points
+                        .slice() // Create a shallow copy to avoid modifying the original array
+                        .sort((a, b) => (a.point || 0) - (b.point || 0)) // Sort by 'point' property
+                        .map((item, index) => (
                         <tr key={index} className="data-table-row">
-                            <td className="data-table-cell">{item.group !== undefined ? item.group : '-'}</td>
                             <td className="data-table-cell">{item.point !== undefined ? item.point : '-'}</td>
                             <td className="data-table-cell monospace-font">
                                 {formatUnit(item.resistance, 'Ω')}
@@ -86,7 +95,7 @@ const DetailedView = ({ group, handleBackToList, onSelectGroup }) => (
     </div>
 );
 
-const MeasurementList = ({ data = [], showTitle = true, onSelectGroup }) => {
+const MeasurementList = ({ data = [], showTitle = true, onSelectGroup, currentUser, addLog, onRefreshMeasurements }) => {
     const [selectedGroup, setSelectedGroup] = useState(null);
 
     const groupedMeasurements = useMemo(() => {
@@ -94,18 +103,15 @@ const MeasurementList = ({ data = [], showTitle = true, onSelectGroup }) => {
             return [];
         }
 
-        // Group measurements by 'group' property
         const groups = data.reduce((acc, m) => {
-            // Ensure m.group is a number, default to 0 if not
             const groupNum = typeof m.group === 'number' ? m.group : parseInt(m.group, 10) || 0;
             const key = `G${groupNum}`;
             
             if (!acc[key]) {
                 acc[key] = {
                     id: key,
-                    rawId: groupNum, // Store raw group number
+                    rawId: groupNum,
                     points: [],
-                    // Handle both Firestore Timestamps and ISO strings from IndexedDB
                     date: m.timestamp?.toDate ? m.timestamp.toDate() : new Date(m.timestamp),
                 };
             }
@@ -113,7 +119,6 @@ const MeasurementList = ({ data = [], showTitle = true, onSelectGroup }) => {
             return acc;
         }, {});
 
-        // Convert grouped object to array and sort by date descending
         return Object.values(groups).sort((a, b) => b.date - a.date);
         
     }, [data]);
@@ -126,9 +131,21 @@ const MeasurementList = ({ data = [], showTitle = true, onSelectGroup }) => {
         setSelectedGroup(null);
     };
 
+    const handleDeleteGroup = useCallback(async (groupToDelete) => {
+        if (window.confirm(`Tem certeza que deseja excluir o grupo de medições "${groupToDelete.id}"?`)) {
+            try {
+                await MeasurementService.deleteMeasurementsByGroup(currentUser.uid, [groupToDelete.rawId]);
+                addLog(`Grupo de medições "${groupToDelete.id}" excluído com sucesso.`, 'success');
+                onRefreshMeasurements(); // Refresh the list in the parent component
+            } catch (error) {
+                addLog(`Erro ao excluir o grupo "${groupToDelete.id}": ${error.message}`, 'error');
+            }
+        }
+    }, [currentUser, addLog, onRefreshMeasurements]);
+
     return (
         <div className="measurement-list-container">
-            {showTitle && !selectedGroup && ( // Only show main title if no group is selected
+            {showTitle && !selectedGroup && (
                 <div className="measurement-list-header">
                     <h1 className="page-title">Medições Salvas</h1>
                     <p className="page-subtitle">Grupos de medições baixadas dos seus dispositivos.</p>
@@ -137,7 +154,7 @@ const MeasurementList = ({ data = [], showTitle = true, onSelectGroup }) => {
             {groupedMeasurements.length === 0 ? <EmptyState /> : (
                 selectedGroup 
                     ? <DetailedView group={selectedGroup} handleBackToList={handleBackToList} onSelectGroup={onSelectGroup} /> 
-                    : <TableView groupedMeasurements={groupedMeasurements} handleViewDetails={handleViewDetails} />
+                    : <TableView groupedMeasurements={groupedMeasurements} handleViewDetails={handleViewDetails} onDeleteGroup={handleDeleteGroup} />
             )}
         </div>
     );

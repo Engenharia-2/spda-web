@@ -84,7 +84,17 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // 5. FIRMWARES
+    // 5. MEDIÇÕES
+    match /measurements/{measurementId} {
+      // Usuário só pode ler e apagar suas próprias medições
+      allow get, list, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Usuário só pode criar medições para si mesmo
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Atualizar medições não é permitido para garantir a integridade dos dados brutos
+      allow update: if false;
+    }
+
+    // 6. FIRMWARES
     match /firmwares/{firmwareId} {
       allow read: if isAuthenticated();
       // Admin do banco pode atualizar firmwares

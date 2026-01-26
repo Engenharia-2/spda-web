@@ -97,6 +97,41 @@ export const LocalStorageService = {
         });
     },
 
+    async deleteMeasurementsByGroup(userId, groupIds) {
+        if (!groupIds || groupIds.length === 0) {
+            return Promise.resolve();
+        }
+        const db = await this.openDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORES.MEASUREMENTS], 'readwrite');
+            const store = transaction.objectStore(STORES.MEASUREMENTS);
+            const request = store.openCursor();
+            let deleteCount = 0;
+
+            request.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const measurement = cursor.value;
+                    if (measurement.userId === userId && groupIds.includes(measurement.group)) {
+                        cursor.delete();
+                        deleteCount++;
+                    }
+                    cursor.continue();
+                }
+            };
+
+            transaction.oncomplete = () => {
+                console.log(`[LocalStorageService] Deleted ${deleteCount} old measurements for groups: ${groupIds.join(', ')}`);
+                resolve();
+            };
+
+            transaction.onerror = () => {
+                console.error('[LocalStorageService] Error deleting measurements by group.', transaction.error);
+                reject(transaction.error);
+            };
+        });
+    },
+
     async saveReport(reportData) {
         const db = await this.openDB();
         return new Promise((resolve, reject) => {

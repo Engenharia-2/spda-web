@@ -101,22 +101,83 @@
     color: var(--color-text-primary);
 }
 
-.action-btn-view {
-    background-color: var(--color-accent-primary);
-    color: white;
+/* Common Action Button Styles */
+.action-btn {
     border: none;
     padding: 0.5rem 1rem;
     border-radius: var(--radius-md);
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s;
+    display: flex; /* Use flex to align icon and text */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* Space between icon and text */
+}
+
+.action-btn-text {
+    display: inline; /* Show text by default */
+}
+
+.action-btn-icon {
+    display: none; /* Hide icon by default */
+}
+
+.action-btn-view {
+    background-color: var(--color-accent-primary);
+    color: white;
 }
 
 .action-btn-view:hover {
     background-color: var(--color-accent-primary-hover);
 }
 
+.action-btn-delete {
+    background-color: var(--color-error); /* Red color */
+    color: white;
+    margin-left: 0.5rem; /* Space between view and delete buttons */
+}
 
+.action-btn-delete:hover {
+    background-color: var(--color-error-hover); /* Darker red on hover */
+}
+
+.detailed-view-header{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+}
+
+.back-button {
+    width: 20%;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--color-accent-secondary);
+}
+
+.select-button{
+    width: 40%;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--color-accent-primary);
+}
 /* Responsive table for mobile */
 @media (max-width: 768px) {
     .measurement-table thead {
@@ -158,4 +219,27 @@
         color: var(--color-text-primary);
         margin-right: var(--spacing-md);
     }
+
+    /* Action buttons on mobile */
+    .action-btn {
+        padding: 0.5rem; /* Smaller padding for icon-only buttons */
+        width: 38px; /* Fixed width for consistent sizing */
+        height: 38px; /* Fixed height for consistent sizing */
+        border-radius: 50%; /* Make them round */
+        flex-shrink: 0; /* Prevent shrinking */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0; /* Remove gap when only icon is visible */
+    }
+
+    .action-btn-text {
+        display: none; /* Hide text on mobile */
+    }
+
+    .action-btn-icon {
+        display: inline; /* Show icon on mobile */
+    }
 }
+
+

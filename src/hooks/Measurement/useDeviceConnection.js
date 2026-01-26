@@ -27,11 +27,14 @@ const useDeviceConnection = (addLog) => {
                 processBuffer();
             }
         });
+    }, [addLog]);
 
+    // Effect for final cleanup on unmount
+    useEffect(() => {
         return () => {
             serialService.disconnect();
         };
-    }, [addLog]);
+    }, []);
 
     const processBuffer = async () => {
         while (rxBuffer.current.length >= 5) { // Min packet size
