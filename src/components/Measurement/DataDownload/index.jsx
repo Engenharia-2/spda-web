@@ -8,6 +8,7 @@ const DataDownload = ({
     downloadProgress,
     handleDownloadMeasurements,
     displayedMeasurementData,
+    downloadError,
 }) => {
     return (
         <section className="panel-card">
@@ -15,17 +16,12 @@ const DataDownload = ({
                 <Download size={20} /> Dados
             </h2>
 
-            {isDownloading && (
-                <div className="download-progress">{downloadProgress}</div>
-            )}
-
-            <button
-                onClick={handleDownloadMeasurements}
-                disabled={!isConnected || isDownloading}
-                className="panel-card-button secondary"
-            >
-                <FileText size={20} /> {isDownloading ? 'Baixando...' : 'Baixar Medições'}
-            </button>
+            <div className="download-area">
+                {isDownloading && (
+                    <div className="download-progress">{downloadProgress}</div>
+                )}
+                <label className="input-label">Medições serão armazenadas no aplicativo.</label>
+            </div>
 
             {displayedMeasurementData && (
                 <div className="processed-data-container">
@@ -39,6 +35,21 @@ const DataDownload = ({
                     />
                 </div>
             )}
+
+            {downloadError && (
+                <div className="download-error-message" style={{ color: 'var(--color-error)', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: '500' }}>
+                    {downloadError}
+                </div>
+            )}
+
+            <button
+                onClick={handleDownloadMeasurements}
+                disabled={!isConnected || isDownloading}
+                className="panel-card-button secondary"
+            >
+                <FileText size={20} /> {isDownloading ? 'Baixando...' : 'Baixar Medições'}
+            </button>
+
         </section>
     );
 };

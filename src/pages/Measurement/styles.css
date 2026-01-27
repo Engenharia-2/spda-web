@@ -25,9 +25,15 @@
     color: var(--color-text-muted);
 }
 
-.header-actions {
+.measurement-page-header .header-actions {
     display: flex;
     gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .measurement-page-header .header-actions {
+        width: 100%;
+    }
 }
 
 /* --- Buttons --- */
@@ -59,6 +65,21 @@
 .disconnect-button {
     background-color: var(--color-error);
     color: white;
+}
+
+.qr-button-mobile {
+    width: 100%;
+    flex-direction: column;
+    padding: var(--spacing-lg);
+    background-color: var(--color-accent-primary);
+    color: white;
+    font-size: 1.1rem;
+    min-height: 100px;
+    margin-top: var(--spacing-md);
+}
+
+.qr-button-mobile:hover {
+    background-color: var(--color-accent-hover);
 }
 
 /* Device Info Card */
@@ -95,23 +116,30 @@
     color: var(--color-text-muted);
 }
 
+.device-info-card.error {
+    border-color: var(--color-error);
+    background-color: rgba(239, 68, 68, 0.05); /* Very light red tint */
+}
+
 /* Main Grid Layout */
 .main-content-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-}
-
-@media (min-width: 1024px) {
-    .main-content-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-.control-panel {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-lg);
+    width: 100%;
+}
+
+.control-panel {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+    width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .control-panel {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 /* Panel Cards */
@@ -120,6 +148,9 @@
     padding: var(--spacing-lg);
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .panel-card-title {
@@ -143,7 +174,9 @@
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
+    margin-top: auto;
 }
+
 .panel-card-button:disabled {
     background-color: var(--color-bg-tertiary) !important;
     cursor: not-allowed;

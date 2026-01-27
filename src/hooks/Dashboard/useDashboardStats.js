@@ -81,6 +81,7 @@ export const useDashboardStats = () => {
 
     // --- Derived stats ---
     const totalCompletedReports = countReportsByStatus(reports, 'completed');
+    const pendingReportsCount = countReportsByStatus(reports, 'draft');
 
     const totalStorageLimit = 50 * 1024 * 1024; // 50MB
     const storageStats = calculateStorageUsage(currentUser, totalStorageLimit);
@@ -122,6 +123,7 @@ export const useDashboardStats = () => {
         isLoading,
         stats: {
             totalCompletedReports,
+            pendingReportsCount,
             clientsCount,
             storage: storageStats,
             displayedEquipment,

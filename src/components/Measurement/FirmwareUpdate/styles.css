@@ -1,21 +1,5 @@
 /* src/components/Measurement/FirmwareUpdate/styles.css */
 
-.panel-card {
-    background-color: var(--color-bg-secondary);
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-}
-
-.panel-card-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
 .firmware-upload-area {
     margin-bottom: 1.5rem;
 }
@@ -60,26 +44,4 @@
     height: 100%;
     background-color: var(--color-accent-primary);
     transition: width 0.3s ease;
-}
-
-.panel-card-button {
-    width: 100%;
-    color: white;
-    border: none;
-    padding: 0.75rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-}
-.panel-card-button:disabled {
-    background-color: var(--color-bg-tertiary) !important;
-    cursor: not-allowed;
-}
-
-.panel-card-button.success {
-    background-color: var(--color-success);
 }

@@ -6,6 +6,7 @@ const useDeviceConnection = (addLog) => {
     const [isConnected, setIsConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
     const [deviceInfo, setDeviceInfo] = useState(null);
+    const [connectionError, setConnectionError] = useState(null);
 
     const rxBuffer = useRef(new Uint8Array(0));
     const connectionPromise = useRef(null);
@@ -94,6 +95,7 @@ const useDeviceConnection = (addLog) => {
     const handleConnect = async () => {
         setIsConnected(false);
         setIsConnecting(true);
+        setConnectionError(null);
         try {
             const success = await serialService.connect();
             if (success) {
@@ -127,6 +129,7 @@ const useDeviceConnection = (addLog) => {
             await serialService.disconnect();
             setIsConnected(false);
             setDeviceInfo(null);
+            setConnectionError("Falha na conexão. Verifique se o equipamento está ligado e conectado.");
         } finally {
             setIsConnecting(false);
         }
@@ -137,6 +140,7 @@ const useDeviceConnection = (addLog) => {
             await serialService.disconnect();
             setIsConnected(false);
             setDeviceInfo(null);
+            setConnectionError(null);
             if (addLog) addLog('Dispositivo desconectado', 'info');
         } catch (error) {
             if (addLog) addLog(`Erro ao desconectar: ${error.message}`, 'error');
@@ -176,6 +180,7 @@ const useDeviceConnection = (addLog) => {
         isConnected,
         isConnecting,
         deviceInfo,
+        connectionError,
         handleConnect,
         handleDisconnect,
         handleIdentify,

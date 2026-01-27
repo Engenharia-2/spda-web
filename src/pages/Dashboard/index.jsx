@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import StatCard from '../../components/Dashboard/StatCard';
 import ReportList from '../../components/Report/ReportList';
 import './styles.css';
-import { Calendar, HardDrive, FileText } from 'lucide-react';
+import { Calendar, HardDrive, FileClock } from 'lucide-react';
 import { useDashboardStats } from '../../hooks/Dashboard/useDashboardStats';
 
 const Dashboard = () => {
@@ -36,11 +36,9 @@ const Dashboard = () => {
 
             <div className="stats-grid">
                 <StatCard
-                    title="Laudos Emitidos no Mês"
-                    value={stats.reportsThisMonth}
-                    icon={<FileText />}
-                    trend={stats.reportTrend}
-                    trendUp={stats.reportTrendUp}
+                    title="Relatórios Pendentes"
+                    value={stats.pendingReportsCount}
+                    icon={<FileClock />}
                 />
                 <StatCard
                     title="Uso do Armazenamento"

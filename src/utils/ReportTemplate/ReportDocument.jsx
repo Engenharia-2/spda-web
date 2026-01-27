@@ -356,7 +356,7 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                                     <View style={styles.tableCol}><Text style={styles.tableCell}>{formatResistance(m.resistencia)}</Text></View>
                                     <View style={styles.tableCol}>
                                         <Text style={styles.tableCell}>
-                                            {typeof m.corrente === 'number' ? m.corrente.toFixed(2) : (m.corrente || '-')}
+                                            {typeof m.corrente === 'number' ? `${m.corrente.toFixed(2)} A` : (m.corrente || '-')}
                                         </Text>
                                     </View>
                                 </View>
