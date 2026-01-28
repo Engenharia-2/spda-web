@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Power, PowerOff, QrCode } from 'lucide-react';
-import { MeasurementService } from '../../services/MeasurementService';
 
 // Custom Hooks
 import { useLogManager } from '../../hooks/Measurement/useLogManager';
 import useDeviceConnection from '../../hooks/Measurement/useDeviceConnection';
 import { useFirmwareUpdater } from '../../hooks/Measurement/useFirmwareUpdater';
 import { useMeasurementDownloader } from '../../hooks/Measurement/useMeasurementDownloader';
+import { useMeasurementManager } from '../../hooks/Measurement/useMeasurementManager';
 import useResponsive from '../../hooks/useResponsive';
 import useQRCodeScanner from '../../hooks/Report/useQRCodeScanner';
 
@@ -21,67 +21,18 @@ import './styles.css';
 
 const DeviceManager = () => {
     const { currentUser } = useAuth();
-    const [measurementData, setMeasurementData] = useState([]);
     const { isMobileDevice } = useResponsive();
+    const { addLog } = useLogManager();
 
-    const {
-        addLog,
-    } = useLogManager();
-
-    const fetchMeasurements = useCallback(async () => {
-        if (currentUser) {
-            try {
-                const data = await MeasurementService.getUserMeasurements(currentUser.uid);
-                setMeasurementData(data);
-                // We don't log here anymore to avoid spamming on every fetch
-            } catch (error) {
-                addLog(`Erro ao carregar medições: ${error.message}`, 'error');
-            }
-        }
-    }, [currentUser, addLog]);
+    const { 
+        measurementData, 
+        fetchMeasurements, 
+        saveScannedMeasurements 
+    } = useMeasurementManager(currentUser, addLog);
 
     const handleScanComplete = async (scannedData) => {
         if (scannedData && Array.isArray(scannedData.parsedData)) {
-            try {
-                // Adapt QR code data format to standard storage format
-                const formattedData = scannedData.parsedData.map(item => {
-                    // Extract group number from "G1" or "1"
-                    let groupNum = 0;
-                    if (item.grupo) {
-                         const groupStr = String(item.grupo);
-                         // Remove non-numeric characters (like 'G') to safely get the number
-                         const numericPart = groupStr.replace(/\D/g, ''); 
-                         groupNum = parseInt(numericPart, 10) || 0;
-                    }
-
-                    // Parse timestamp from "DD/MM/YYYY HH:mm"
-                    let timestamp = null;
-                    if (item.dataHora) {
-                        // Assuming format DD/MM/YYYY HH:mm
-                        const parts = String(item.dataHora).match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
-                        if (parts) {
-                            // new Date(year, monthIndex, day, hours, minutes)
-                            timestamp = new Date(parts[3], parts[2] - 1, parts[1], parts[4], parts[5]);
-                        }
-                    }
-
-                    return {
-                        group: groupNum,
-                        point: Number(item.ponto) || 0,
-                        resistance: Number(item.resistencia) || 0,
-                        current: Number(item.corrente) || 0,
-                        timestamp: timestamp
-                    };
-                });
-
-                if (formattedData.length > 0) {
-                    await MeasurementService.saveMeasurements(currentUser.uid, formattedData);
-                    addLog(`Medições do QR Code salvas com sucesso.`, 'success');
-                    await fetchMeasurements();
-                }
-            } catch (error) {
-                addLog(`Erro ao salvar medições do QR Code: ${error.message}`, 'error');
-            }
+            await saveScannedMeasurements(scannedData.parsedData);
         }
     };
 
@@ -106,8 +57,8 @@ const DeviceManager = () => {
     const {
         isDownloading,
         downloadProgress,
-        displayedMeasurementData,
         downloadError,
+        downloadSuccess,
         handleDownloadMeasurements
     } = useMeasurementDownloader(isConnected, sendRequest, addLog, currentUser, fetchMeasurements);
     
@@ -121,8 +72,7 @@ const DeviceManager = () => {
 
     useEffect(() => {
         addLog("Bem-vindo ao Gerenciador de Dispositivos.", "info");
-        fetchMeasurements();
-    }, [fetchMeasurements, addLog]);
+    }, [addLog]);
 
     return (
         <div className="measurement-page-container">
@@ -184,8 +134,8 @@ const DeviceManager = () => {
                             isDownloading={isDownloading}
                             downloadProgress={downloadProgress}
                             handleDownloadMeasurements={handleDownloadMeasurements}
-                            displayedMeasurementData={displayedMeasurementData}
                             downloadError={downloadError}
+                            downloadSuccess={downloadSuccess}
                         />
                         <FirmwareUpdate
                             isConnected={isConnected}

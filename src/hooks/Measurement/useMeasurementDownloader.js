@@ -8,6 +8,7 @@ export const useMeasurementDownloader = (isConnected, sendRequest, addLog, curre
     const [downloadProgress, setDownloadProgress] = useState('');
     const [displayedMeasurementData, setDisplayedMeasurementData] = useState('');
     const [downloadError, setDownloadError] = useState(null);
+    const [downloadSuccess, setDownloadSuccess] = useState(false);
 
     const handleDownloadMeasurements = useCallback(async () => {
         if (!isConnected) return;
@@ -16,6 +17,7 @@ export const useMeasurementDownloader = (isConnected, sendRequest, addLog, curre
         setDownloadProgress('Iniciando download...');
         setDisplayedMeasurementData('');
         setDownloadError(null);
+        setDownloadSuccess(false);
 
         try {
             addLog('Requisitando número de medições...', 'info');
@@ -74,12 +76,14 @@ export const useMeasurementDownloader = (isConnected, sendRequest, addLog, curre
             
             setDisplayedMeasurementData(formattedDisplay || "Nenhum dado válido encontrado.");
             setDownloadProgress('Download concluído!');
+            setDownloadSuccess(true);
             addLog('Todas as medições foram baixadas e processadas.', 'success');
 
         } catch (error) {
             addLog(`Erro no download: ${error.message}`, 'error');
             setDownloadProgress('Erro no download.');
             setDownloadError('Falha ao baixar medições.');
+            setDownloadSuccess(false);
         } finally {
             setIsDownloading(false);
         }
@@ -90,6 +94,7 @@ export const useMeasurementDownloader = (isConnected, sendRequest, addLog, curre
         downloadProgress,
         displayedMeasurementData,
         downloadError,
+        downloadSuccess,
         handleDownloadMeasurements
     };
 };

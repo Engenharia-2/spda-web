@@ -36,11 +36,39 @@ const useQRCodeScanner = ({ onScanComplete }) => {
                 });
             });
 
+            // Normalize data to standard format
+            const normalizedData = allPoints.map(item => {
+                // Extract group number
+                let groupNum = 0;
+                if (item.grupo) {
+                     const groupStr = String(item.grupo);
+                     const numericPart = groupStr.replace(/\D/g, ''); 
+                     groupNum = parseInt(numericPart, 10) || 0;
+                }
+
+                // Parse timestamp
+                let timestamp = null;
+                if (item.dataHora) {
+                    const parts = String(item.dataHora).match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+                    if (parts) {
+                        timestamp = new Date(parts[3], parts[2] - 1, parts[1], parts[4], parts[5]);
+                    }
+                }
+
+                return {
+                    group: groupNum,
+                    point: Number(item.ponto) || 0,
+                    resistance: Number(item.resistencia) || 0,
+                    current: Number(item.corrente) || 0,
+                    timestamp: timestamp
+                };
+            });
+
             if (onScanCompleteRef.current) {
                 onScanCompleteRef.current({
                     fileName: `QR Code ${groupId}`,
                     fileSize: 0,
-                    parsedData: allPoints
+                    parsedData: normalizedData
                 });
             }
 

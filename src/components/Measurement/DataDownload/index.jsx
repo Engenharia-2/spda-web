@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, CheckCircle } from 'lucide-react';
 import './styles.css';
 
 const DataDownload = ({
@@ -7,8 +7,8 @@ const DataDownload = ({
     isDownloading,
     downloadProgress,
     handleDownloadMeasurements,
-    displayedMeasurementData,
     downloadError,
+    downloadSuccess,
 }) => {
     return (
         <section className="panel-card">
@@ -23,19 +23,6 @@ const DataDownload = ({
                 <label className="input-label">Medições serão armazenadas no aplicativo.</label>
             </div>
 
-            {displayedMeasurementData && (
-                <div className="processed-data-container">
-                    <label className="input-label">Dados Processados (Grupo, Ponto, Resistência, Corrente, Timestamp)</label>
-                    <textarea
-                        readOnly
-                        value={displayedMeasurementData}
-                        className="text-input mono"
-                        rows="5"
-                        title="Dados da medição recebidos e processados"
-                    />
-                </div>
-            )}
-
             {downloadError && (
                 <div className="download-error-message" style={{ color: 'var(--color-error)', fontSize: '0.875rem', marginBottom: '0.5rem', fontWeight: '500' }}>
                     {downloadError}
@@ -45,9 +32,13 @@ const DataDownload = ({
             <button
                 onClick={handleDownloadMeasurements}
                 disabled={!isConnected || isDownloading}
-                className="panel-card-button secondary"
+                className={`panel-card-button ${downloadSuccess ? 'success' : 'secondary'}`}
             >
-                <FileText size={20} /> {isDownloading ? 'Baixando...' : 'Baixar Medições'}
+                {downloadSuccess ? (
+                    <><CheckCircle size={20} /> Medições baixadas</>
+                ) : (
+                    <><FileText size={20} /> {isDownloading ? 'Baixando...' : 'Baixar Medições'}</>
+                )}
             </button>
 
         </section>

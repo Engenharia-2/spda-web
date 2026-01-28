@@ -10,11 +10,6 @@
     color: var(--color-text-secondary);
 }
 
-.processed-data-container {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-}
-
 .input-label {
     display: block;
     margin-bottom: 0.5rem;
@@ -22,14 +17,22 @@
     font-size: 0.875rem;
 }
 
-.text-input {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    color: var(--color-text-primary);
+.panel-card-button.success {
+    background-color: var(--color-success);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
-.text-input.mono {
-    font-family: var(--font-mono);
+
+.panel-card-button.success:hover {
+    filter: brightness(0.9);
+}
+
+.panel-card-button.success:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }

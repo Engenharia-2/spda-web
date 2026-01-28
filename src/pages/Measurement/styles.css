@@ -194,35 +194,6 @@
 
 
 /* Specific Panel Content */
-.download-progress {
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-}
-
-.processed-data-container {
-    margin-top: 1rem;
-}
-
-.input-label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: var(--color-text-secondary);
-    font-size: 0.875rem;
-}
-
-.text-input {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    color: var(--color-text-primary);
-}
-.text-input.mono {
-    font-family: var(--font-mono);
-}
-
 .structured-send-grid {
     display: grid;
     grid-template-columns: 100px 1fr;
