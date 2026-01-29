@@ -1,5 +1,6 @@
 import React from 'react';
 import './styles.css';
+import { Rocket }from 'lucide-react';
 
 const SubscriptionPlan = ({ subscription, onUpgrade }) => {
     const isFreePlan = subscription === 'free' || !subscription;
@@ -14,7 +15,8 @@ const SubscriptionPlan = ({ subscription, onUpgrade }) => {
             </div>
             {isFreePlan && (
                 <button className="upgrade-button" onClick={onUpgrade}>
-                    Fazer Upgrade 🚀
+                    <p>Fazer Upgrade</p>
+                    <Rocket size={16} />
                 </button>
             )}
         </div>

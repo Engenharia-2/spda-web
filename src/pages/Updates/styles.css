@@ -1,0 +1,136 @@
+.measurement-page-container {
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow-y: auto;
+}
+
+.measurement-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.page-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.base-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.connect-button {
+    background-color: var(--color-accent-primary);
+    color: white;
+}
+
+.connect-button:hover:not(:disabled) {
+    background-color: var(--color-accent-hover, var(--color-primary-dark));
+}
+
+.connect-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.disconnect-button {
+    background-color: transparent;
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
+}
+
+.disconnect-button:hover {
+    background-color: var(--color-error-bg);
+}
+
+.device-info-card {
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.device-info-card.error {
+    border-color: var(--color-error);
+    background-color: var(--color-error-bg);
+}
+
+.device-info-model {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.device-info-details {
+    display: flex;
+    gap: 1.5rem;
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    flex-wrap: wrap;
+}
+
+.device-info-details strong {
+    color: var(--color-text-secondary);
+}
+
+.device-info-ids {
+    background-color: var(--color-bg-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.main-content-grid {
+    display: grid;
+    gap: 1.5rem;
+    /* Adaptação simples, mas pode ser expandida */
+    grid-template-columns: 1fr; 
+}
+
+@media (min-width: 1024px) {
+    .main-content-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}

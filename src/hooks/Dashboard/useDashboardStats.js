@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ClientService } from '../../services/ClientService';
 import { useReports } from '../Report/useReports';
 import { useEquipmentSettings } from '../Settings/ReportData/useEquipmentSettings';
+import { getStorageLimit } from '../../utils/storageLimits';
 import {
     calculateValidityStatus,
     calculateStorageUsage,
@@ -83,7 +84,7 @@ export const useDashboardStats = () => {
     const totalCompletedReports = countReportsByStatus(reports, 'completed');
     const pendingReportsCount = countReportsByStatus(reports, 'draft');
 
-    const totalStorageLimit = 50 * 1024 * 1024; // 50MB
+    const totalStorageLimit = getStorageLimit(currentUser?.subscription);
     const storageStats = calculateStorageUsage(currentUser, totalStorageLimit);
     storageStats.borderColor = getBorderColor('storage', storageStats.numericPercentage);
 

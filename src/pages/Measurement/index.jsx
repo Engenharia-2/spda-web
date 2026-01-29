@@ -5,7 +5,6 @@ import { Power, PowerOff, QrCode } from 'lucide-react';
 // Custom Hooks
 import { useLogManager } from '../../hooks/Measurement/useLogManager';
 import useDeviceConnection from '../../hooks/Measurement/useDeviceConnection';
-import { useFirmwareUpdater } from '../../hooks/Measurement/useFirmwareUpdater';
 import { useMeasurementDownloader } from '../../hooks/Measurement/useMeasurementDownloader';
 import { useMeasurementManager } from '../../hooks/Measurement/useMeasurementManager';
 import useResponsive from '../../hooks/useResponsive';
@@ -14,7 +13,6 @@ import useQRCodeScanner from '../../hooks/Report/useQRCodeScanner';
 // Components
 import MeasurementList from '../../components/Measurement/MeasurementList';
 import DataDownload from '../../components/Measurement/DataDownload';
-import FirmwareUpdate from '../../components/Measurement/FirmwareUpdate';
 import QRCodeScanner from '../../components/Measurement/QRCodeScanner';
 
 import './styles.css';
@@ -62,14 +60,6 @@ const DeviceManager = () => {
         handleDownloadMeasurements
     } = useMeasurementDownloader(isConnected, sendRequest, addLog, currentUser, fetchMeasurements);
     
-    const {
-        firmwareFile,
-        isUploading,
-        uploadProgress,
-        handleFileChange,
-        handleFirmwareUpdate
-    } = useFirmwareUpdater(isConnected, addLog);
-
     useEffect(() => {
         addLog("Bem-vindo ao Gerenciador de Dispositivos.", "info");
     }, [addLog]);
@@ -136,14 +126,6 @@ const DeviceManager = () => {
                             handleDownloadMeasurements={handleDownloadMeasurements}
                             downloadError={downloadError}
                             downloadSuccess={downloadSuccess}
-                        />
-                        <FirmwareUpdate
-                            isConnected={isConnected}
-                            firmwareFile={firmwareFile}
-                            uploadProgress={uploadProgress}
-                            isUploading={isUploading}
-                            onFileChange={handleFileChange}
-                            onFirmwareUpdate={handleFirmwareUpdate}
                         />
                     </div>
                 )}

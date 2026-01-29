@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { StorageService } from '../../services/StorageService';
+import { getStorageLimit } from '../../utils/storageLimits';
 
 export const useAttachments = (data, updateData) => {
     const { currentUser } = useAuth();
@@ -61,8 +62,11 @@ export const useAttachments = (data, updateData) => {
         } catch (error) {
             console.error('[useAttachments] CRITICAL: Error during attachment process.', error);
             
+            const limit = getStorageLimit(currentUser?.subscription);
+            const limitMB = (limit / 1024 / 1024).toFixed(0);
+
             if (error.code === 'storage/unauthorized') {
-                alert('Limite de armazenamento atingido (50MB). Por favor, exclua relatórios ou anexos antigos para liberar espaço.');
+                alert(`Limite de armazenamento atingido (${limitMB}MB). Por favor, exclua relatórios ou anexos antigos para liberar espaço.`);
             } else {
                 alert(`Ocorreu um erro ao anexar as fotos: ${error.message}`);
             }

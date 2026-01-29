@@ -47,4 +47,6 @@
     border-radius: var(--radius-md);
     font-weight: 600;
     cursor: pointer;
+    display: flex;
+    gap: 0.5rem;
 }

@@ -1,11 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useChecklistSettings } from '../../../hooks/useChecklistSettings';
-import { useStorageMode } from '../../../hooks/useStorageMode';
-import { useSync } from '../../../hooks/useSync';
 import SubscriptionPlan from '../SubscriptionPlan';
-import StorageSettings from '../StorageSettings';
-import DataSync from '../DataSync';
 import ChecklistConfiguration from '../ChecklistConfiguration';
 import ReportCustomization from '../ReportCustomization';
 import './styles.css';
@@ -23,9 +19,6 @@ const Settings = () => {
         handleDeleteItem,
         handleSave,
     } = useChecklistSettings();
-
-    const { storageMode, handleStorageModeChange } = useStorageMode();
-    const { syncing, syncProgress, handleSyncLocalToCloud, handleSyncCloudToLocal } = useSync();
 
     if (loading) {
         return <div className="settings-loading">Carregando configurações...</div>;
@@ -52,20 +45,6 @@ const Settings = () => {
             <SubscriptionPlan
                 subscription={currentUser?.subscription}
                 onUpgrade={handleUpgrade}
-            />
-
-            <StorageSettings
-                storageMode={storageMode}
-                onStorageModeChange={handleStorageModeChange}
-                isFreePlan={isFreePlan}
-            />
-
-            <DataSync
-                syncing={syncing}
-                syncProgress={syncProgress}
-                onSyncLocalToCloud={handleSyncLocalToCloud}
-                onSyncCloudToLocal={handleSyncCloudToLocal}
-                isFreePlan={isFreePlan}
             />
 
             <ChecklistConfiguration

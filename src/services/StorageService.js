@@ -13,18 +13,13 @@ import {
     writeBatch
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
-import { LocalStorageService } from './LocalStorageService';
 import { compressImage } from '../utils/ImageProcessor';
+import { LocalStorageService } from './LocalStorageService';
 
 const REPORTS_COLLECTION = 'reports';
 
-// Helper to get current storage mode
-const getStorageMode = () => {
-    const mode = localStorage.getItem('storageMode');
-    const finalMode = mode || 'cloud'; // default to cloud for now, will change logic later
-    console.log(`[StorageService] getStorageMode: Detected mode is "${finalMode}".`);
-    return finalMode;
-};
+// Helper to check online status
+const isOnline = () => navigator.onLine;
 
 // Helper to recursively delete all files and folders within a given storage path
 const deleteFolderContents = async (path) => {
@@ -78,283 +73,297 @@ const _uploadToCloud = async (processedFile, path) => {
 export const StorageService = {
     // Save a new report or update an existing one
     saveReport: async (userId, reportData, reportId = null) => {
-        const mode = getStorageMode();
+        // Try Cloud first if online
+        if (isOnline()) {
+            try {
+                const dataToSave = {
+                    ...reportData,
+                    userId,
+                    updatedAt: serverTimestamp(),
+                    syncStatus: 'synced' // Mark as synced
+                };
 
-        if (mode === 'local') {
-            return await LocalStorageService.saveReport({ ...reportData, userId, id: reportId });
+                if (reportId) {
+                    // Update existing
+                    const reportRef = doc(db, REPORTS_COLLECTION, reportId);
+                    await updateDoc(reportRef, dataToSave);
+                    return reportId;
+                } else {
+                    // Create new
+                    dataToSave.createdAt = serverTimestamp();
+                    const docRef = await addDoc(collection(db, REPORTS_COLLECTION), dataToSave);
+                    return docRef.id;
+                }
+            } catch (error) {
+                console.error('[StorageService] Cloud save failed, falling back to local:', error);
+                // Fallthrough to local save
+            }
         }
 
+        // Offline Fallback
+        console.log('[StorageService] Saving report locally (Offline Mode).');
         try {
-            const dataToSave = {
+            return await LocalStorageService.saveReport({
                 ...reportData,
                 userId,
-                updatedAt: serverTimestamp(),
-            };
-
-            if (reportId) {
-                // Update existing
-                const reportRef = doc(db, REPORTS_COLLECTION, reportId);
-                await updateDoc(reportRef, dataToSave);
-                return reportId;
-            } else {
-                // Create new
-                dataToSave.createdAt = serverTimestamp();
-                const docRef = await addDoc(collection(db, REPORTS_COLLECTION), dataToSave);
-                return docRef.id;
-            }
-        } catch (error) {
-            console.error('Error saving report (cloud):', error);
-            throw error;
+                id: reportId, // Might be null, LocalStorageService generates one
+                syncStatus: 'pending',
+                updatedAt: new Date().toISOString(),
+                createdAt: reportData.createdAt || new Date().toISOString()
+            });
+        } catch (localError) {
+            console.error('[StorageService] Critical: Failed to save locally.', localError);
+            throw localError;
         }
     },
 
     // Get all reports for a specific user
     getUserReports: async (userId) => {
-        const mode = getStorageMode();
+        if (isOnline()) {
+            try {
+                const q = query(
+                    collection(db, REPORTS_COLLECTION),
+                    where('userId', '==', userId)
+                );
 
-        if (mode === 'local') {
-            return await LocalStorageService.getUserReports(userId);
+                const querySnapshot = await getDocs(q);
+                const cloudReports = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // Optional: We could merge with local pending reports here to show everything
+                // For now, let's just return cloud reports + local pending reports so user sees what's waiting
+                const localReports = await LocalStorageService.getUserReports(userId);
+                const pendingReports = localReports.filter(r => r.syncStatus === 'pending');
+                
+                // Deduplicate based on ID (prefer Cloud version if conflict, or Local if it's an edit? 
+                // Usually if pending exists locally, it's newer. But simplicity first.)
+                // Let's just append pending ones that aren't in cloud list (by ID)
+                const cloudIds = new Set(cloudReports.map(r => r.id));
+                const uniquePending = pendingReports.filter(r => !cloudIds.has(r.id));
+                
+                return [...cloudReports, ...uniquePending];
+
+            } catch (error) {
+                console.error('[StorageService] Cloud fetch failed, falling back to local:', error);
+            }
         }
 
-        try {
-            const q = query(
-                collection(db, REPORTS_COLLECTION),
-                where('userId', '==', userId)
-            );
-
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-        } catch (error) {
-            console.error('Error fetching user reports (cloud):', error);
-            throw error;
-        }
+        // Offline Fallback
+        console.log('[StorageService] Fetching reports locally (Offline Mode).');
+        return await LocalStorageService.getUserReports(userId);
     },
 
     // Get a single report by ID
     getReport: async (reportId) => {
-        const mode = getStorageMode();
+        if (isOnline()) {
+            try {
+                const docRef = doc(db, REPORTS_COLLECTION, reportId);
+                const docSnap = await getDoc(docRef);
 
-        if (mode === 'local') {
-            return await LocalStorageService.getReport(reportId);
-        }
-
-        try {
-            const docRef = doc(db, REPORTS_COLLECTION, reportId);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                return { id: docSnap.id, ...docSnap.data() };
-            } else {
-                throw new Error('Report not found');
+                if (docSnap.exists()) {
+                    return { id: docSnap.id, ...docSnap.data() };
+                } 
+                // If not found in cloud, might be a local-only pending report
+            } catch (error) {
+                console.error('[StorageService] Cloud fetch report failed, checking local:', error);
             }
-        } catch (error) {
-            console.error('Error fetching report (cloud):', error);
-            throw error;
         }
+
+        // Offline/Not Found Fallback
+        console.log('[StorageService] Fetching single report locally.');
+        const localReport = await LocalStorageService.getReport(reportId);
+        if (localReport) return localReport;
+
+        throw new Error('Report not found (checked Cloud and Local)');
     },
 
-    // NEW - Save/Upsert an array of measurements
+    // Save/Upsert an array of measurements
     saveMeasurements: async (userId, measurementData) => {
         if (!userId || !measurementData || measurementData.length === 0) {
             throw new Error('User ID and measurement data are required for save.');
         }
 
-        // Use a single function for the "upsert" logic
         const groupIds = [...new Set(measurementData.map(m => m.group))];
-        await StorageService.deleteMeasurementsByGroup(userId, groupIds);
         
-        const mode = getStorageMode();
-        if (mode === 'local') {
-            return await LocalStorageService.saveMeasurements(userId, measurementData);
-        }
-        
-        // Cloud mode - Save the new measurements
-        try {
-            const saveBatch = writeBatch(db);
-            const measurementsColRef = collection(db, 'measurements');
+        // Try Cloud
+        if (isOnline()) {
+            try {
+                // Delete old groups first
+                await StorageService.deleteMeasurementsByGroup(userId, groupIds);
 
-            measurementData.forEach(measurement => {
-                const docRef = doc(measurementsColRef);
-                saveBatch.set(docRef, {
-                    ...measurement,
-                    userId,
-                    createdAt: serverTimestamp(),
+                const saveBatch = writeBatch(db);
+                const measurementsColRef = collection(db, 'measurements');
+
+                measurementData.forEach(measurement => {
+                    const docRef = doc(measurementsColRef);
+                    saveBatch.set(docRef, {
+                        ...measurement,
+                        userId,
+                        createdAt: serverTimestamp(),
+                        syncStatus: 'synced'
+                    });
                 });
-            });
 
-            await saveBatch.commit();
-            console.log(`[StorageService] ${measurementData.length} new measurements saved to CLOUD successfully.`);
-        } catch (error) {
-            console.error('Error saving new measurements to CLOUD:', error);
-            throw error;
-        }
-    },
-
-    // NEW - Deletes all measurements for a user within specific groups
-    deleteMeasurementsByGroup: async (userId, groupIds) => {
-        if (!userId || !groupIds || groupIds.length === 0) {
-            console.log('[StorageService] Insufficient data to delete measurement groups.');
-            return;
-        }
-
-        const mode = getStorageMode();
-        console.log(`[StorageService] Deleting groups ${groupIds.join(', ')} in mode "${mode}"`);
-
-        if (mode === 'local') {
-            return await LocalStorageService.deleteMeasurementsByGroup(userId, groupIds);
-        }
-
-        // Cloud mode
-        const measurementsRef = collection(db, 'measurements');
-        const q = query(measurementsRef, where('userId', '==', userId), where('group', 'in', groupIds));
-        
-        try {
-            const querySnapshot = await getDocs(q);
-            if (querySnapshot.empty) {
-                console.log(`[StorageService] No existing cloud measurements found for groups: ${groupIds.join(', ')} to delete.`);
+                await saveBatch.commit();
+                console.log(`[StorageService] ${measurementData.length} new measurements saved to CLOUD successfully.`);
                 return;
+            } catch (error) {
+                console.error('[StorageService] Cloud save measurements failed, falling back to local:', error);
             }
-
-            const deleteBatch = writeBatch(db);
-            querySnapshot.forEach(doc => {
-                deleteBatch.delete(doc.ref);
-            });
-            await deleteBatch.commit();
-            console.log(`[StorageService] Deleted ${querySnapshot.size} existing cloud measurements for groups: ${groupIds.join(', ')}`);
-        } catch (error) {
-            console.error(`[StorageService] Error deleting cloud measurements by group:`, error);
-            throw error; // Re-throw to let the caller know something went wrong
         }
+
+        // Offline Fallback
+        console.log('[StorageService] Saving measurements locally (Offline Mode).');
+        // We first delete local ones of same group to avoid dupes
+        await LocalStorageService.deleteMeasurementsByGroup(userId, groupIds);
+        
+        // Mark as pending
+        const pendingMeasurements = measurementData.map(m => ({ ...m, syncStatus: 'pending' }));
+        return await LocalStorageService.saveMeasurements(userId, pendingMeasurements);
     },
 
-    // NEW - Get all measurements for a user
+    // Deletes all measurements for a user within specific groups
+    deleteMeasurementsByGroup: async (userId, groupIds) => {
+        if (!userId || !groupIds || groupIds.length === 0) return;
+
+        if (isOnline()) {
+            try {
+                const measurementsRef = collection(db, 'measurements');
+                const q = query(measurementsRef, where('userId', '==', userId), where('group', 'in', groupIds));
+                
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const deleteBatch = writeBatch(db);
+                    querySnapshot.forEach(doc => deleteBatch.delete(doc.ref));
+                    await deleteBatch.commit();
+                }
+                // Also clean up local just in case
+                await LocalStorageService.deleteMeasurementsByGroup(userId, groupIds);
+                return;
+            } catch (error) {
+                console.error(`[StorageService] Error deleting cloud measurements:`, error);
+                // Fallthrough to local delete attempt
+            }
+        }
+
+        // Offline Fallback
+        return await LocalStorageService.deleteMeasurementsByGroup(userId, groupIds);
+    },
+
+    // Get all measurements for a user
     getUserMeasurements: async (userId) => {
-        const mode = getStorageMode();
-        console.log(`[StorageService] getUserMeasurements called in mode: "${mode}"`);
+        if (!userId) throw new Error('User ID is required.');
 
-        if (mode === 'local') {
-            return await LocalStorageService.getUserMeasurements(userId);
+        if (isOnline()) {
+            try {
+                const q = query(
+                    collection(db, 'measurements'),
+                    where('userId', '==', userId)
+                );
+
+                const querySnapshot = await getDocs(q);
+                const cloudResults = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // Merge with local pending
+                const localResults = await LocalStorageService.getUserMeasurements(userId);
+                const pendingLocal = localResults.filter(m => m.syncStatus === 'pending');
+                
+                console.log(`[StorageService] Fetched ${cloudResults.length} cloud + ${pendingLocal.length} pending local measurements.`);
+                return [...cloudResults, ...pendingLocal];
+
+            } catch (error) {
+                console.error('Error fetching user measurements from CLOUD:', error);
+            }
         }
 
-        // Cloud mode
-        if (!userId) {
-            throw new Error('User ID is required for cloud fetch.');
-        }
-        try {
-            const q = query(
-                collection(db, 'measurements'),
-                where('userId', '==', userId)
-            );
-
-            const querySnapshot = await getDocs(q);
-            const results = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            console.log(`[StorageService] Fetched ${results.length} measurements from CLOUD.`);
-            return results;
-        } catch (error) {
-            console.error('Error fetching user measurements from CLOUD:', error);
-            throw error;
-        }
+        // Offline Fallback
+        console.log('[StorageService] Fetching measurements locally.');
+        return await LocalStorageService.getUserMeasurements(userId);
     },
 
     // Delete a report and its associated files
     deleteReport: async (reportId, userId) => {
-        const mode = getStorageMode();
-
-
-        if (mode === 'local') {
-            return await LocalStorageService.deleteReport(reportId);
-        }
-
-        // Cloud mode
-        try {
-            // First, delete all associated files in Firebase Storage.
-            if (userId) {
-                const reportFolderPath = `reports/${userId}/${reportId}`;
-                console.log(`[StorageService] Deleting all files in folder: ${reportFolderPath}`);
-                await deleteFolderContents(reportFolderPath);
-            } else {
-                console.warn(`[StorageService] No userId provided for report ${reportId}. Cannot delete associated files.`);
+        if (isOnline()) {
+            try {
+                if (userId) {
+                    const reportFolderPath = `reports/${userId}/${reportId}`;
+                    await deleteFolderContents(reportFolderPath);
+                }
+                await deleteDoc(doc(db, REPORTS_COLLECTION, reportId));
+                console.log(`[StorageService] Report document ${reportId} deleted from Cloud.`);
+                
+                // Also delete from local to keep clean
+                await LocalStorageService.deleteReport(reportId);
+                return;
+            } catch (error) {
+                console.error('Error deleting report (cloud):', error);
+                // Fallthrough
             }
-
-            // After deleting files, delete the Firestore document.
-            await deleteDoc(doc(db, REPORTS_COLLECTION, reportId));
-            console.log(`[StorageService] Report document ${reportId} deleted successfully.`);
-        } catch (error) {
-            console.error('Error deleting report (cloud):', error);
-            throw error;
         }
+
+        // Offline Fallback (Mark for deletion? Or just delete local copy?)
+        // If we delete local copy, it might reappear from cloud later if not actually deleted there.
+        // For now, simple local delete. Real "sync deletions" requires a "deleted_items" queue.
+        console.log('[StorageService] Deleting report locally (Offline/Fallback).');
+        return await LocalStorageService.deleteReport(reportId);
     },
 
     // Delete a file from storage
     deleteFile: async (path) => {
         if (!path) return;
-        const mode = getStorageMode();
 
-        if (mode === 'local') {
-            console.log('[StorageService] Local file deletion not required/implemented for this context.');
-            return;
+        if (isOnline()) {
+            try {
+                const fileRef = ref(storage, path);
+                await deleteObject(fileRef);
+                console.log('[StorageService] File deleted from Cloud.');
+                return;
+            } catch (error) {
+                console.error('[StorageService] Error deleting file:', error);
+            }
         }
-
-        try {
-            console.log(`[StorageService] Attempting to delete file at path: ${path}`);
-            const fileRef = ref(storage, path);
-            await deleteObject(fileRef);
-            console.log('[StorageService] File deleted successfully.');
-        } catch (error) {
-            console.error('[StorageService] Error deleting file:', error);
-            // We usually don't throw here to avoid blocking the UI if the file was already gone
-        }
+        // Local file deletion is handled inside LocalStorageService if needed, 
+        // but individual file deletion is rare in offline mode (usually whole report).
     },
 
-    // Upload a file (respects storageMode)
+    // Upload a file
     uploadImage: async (file, path) => {
         console.log(`[StorageService] uploadImage called for file: ${file.name}`);
-        
         const processedFile = await compressImage(file);
 
-        const mode = getStorageMode();
-        console.log(`[StorageService] Detected storage mode: "${mode}"`);
-
-        if (mode === 'local') {
+        if (isOnline()) {
             try {
-                console.log('[StorageService] Calling LocalStorageService.saveImage...');
-                const result = await LocalStorageService.saveImage(processedFile);
-                console.log('[StorageService] LocalStorageService.saveImage returned:', result);
-                return result;
-            } catch (localError) {
-                console.error('Ocorreu um erro grave', localError);
-                throw localError; // Re-throw the error to be caught by the UI
+                return await _uploadToCloud(processedFile, path);
+            } catch (error) {
+                console.error('[StorageService] Cloud upload failed, falling back to local:', error);
             }
         }
 
-        // Cloud mode
-        console.log('[StorageService] Starting CLOUD upload for:', processedFile.name, 'to path:', path);
-        try {
-            return await _uploadToCloud(processedFile, path);
-        } catch (error) {
-            console.error('[StorageService] CRITICAL: Error uploading file to CLOUD.', error);
-            throw error;
-        }
+        // Offline Fallback
+        console.log('[StorageService] Saving image locally (Offline Mode).');
+        return await LocalStorageService.saveImage(processedFile);
     },
 
-    // Upload a profile photo (ALWAYS to cloud, ignores storageMode)
+    // Upload a profile photo
     uploadProfilePhoto: async (file, path) => {
         console.log(`[StorageService] uploadProfilePhoto called for file: ${file.name}`);
-        
         const processedFile = await compressImage(file);
 
-        console.log('[StorageService] Starting profile photo CLOUD upload for:', processedFile.name, 'to path:', path);
-        try {
-            return await _uploadToCloud(processedFile, path);
-        } catch (error) {
-            console.error('[StorageService] CRITICAL: Error uploading profile photo to CLOUD.', error);
-            throw error;
+        if (isOnline()) {
+            try {
+                return await _uploadToCloud(processedFile, path);
+            } catch (error) {
+                console.error('[StorageService] Profile photo cloud upload failed:', error);
+            }
         }
+        
+        // Fallback for profile photo
+        console.log('[StorageService] Saving profile photo locally (Offline Mode).');
+        return await LocalStorageService.saveImage(processedFile);
     },
 };

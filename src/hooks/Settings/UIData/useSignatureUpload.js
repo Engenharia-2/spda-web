@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { StorageService } from '../../../services/StorageService';
 import { resolveImageUrl } from '../../../utils/ImageProcessor';
+import { getStorageLimit } from '../../../utils/storageLimits';
 
 /**
  * Hook customizado para gerenciar upload e exibição de assinatura
@@ -33,6 +34,9 @@ export const useSignatureUpload = (data, onSignatureChange, uploadPath = 'settin
         if (!currentUser || !canvas) return;
 
         setUploading(true);
+        const limit = getStorageLimit(currentUser?.subscription);
+        const limitMB = (limit / 1024 / 1024).toFixed(0);
+
         canvas.toBlob(async (blob) => {
             if (blob) {
                 try {
@@ -46,7 +50,7 @@ export const useSignatureUpload = (data, onSignatureChange, uploadPath = 'settin
                 } catch (error) {
                     console.error('Error saving signature:', error);
                     if (error.code === 'storage/unauthorized') {
-                        alert('Limite de armazenamento atingido (50MB). Libere espaço removendo itens antigos.');
+                        alert(`Limite de armazenamento atingido (${limitMB}MB). Libere espaço removendo itens antigos.`);
                     } else {
                         alert('Erro ao salvar assinatura.');
                     }
@@ -62,6 +66,9 @@ export const useSignatureUpload = (data, onSignatureChange, uploadPath = 'settin
         if (!file || !currentUser) return;
 
         setUploading(true);
+        const limit = getStorageLimit(currentUser?.subscription);
+        const limitMB = (limit / 1024 / 1024).toFixed(0);
+
         try {
             const path = `${uploadPath}/${currentUser.uid}/signature_upload_${Date.now()}_${file.name}`;
             const uploaded = await StorageService.uploadImage(file, path);
@@ -70,7 +77,7 @@ export const useSignatureUpload = (data, onSignatureChange, uploadPath = 'settin
         } catch (error) {
             console.error('Error uploading signature:', error);
             if (error.code === 'storage/unauthorized') {
-                alert('Limite de armazenamento atingido (50MB). Libere espaço removendo itens antigos.');
+                alert(`Limite de armazenamento atingido (${limitMB}MB). Libere espaço removendo itens antigos.`);
             } else {
                 alert('Erro ao enviar assinatura.');
             }

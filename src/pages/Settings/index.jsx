@@ -4,13 +4,9 @@ import { useChecklistSettings } from '../../hooks/Settings/ReportData/useCheckli
 import { useReportCustomization } from '../../hooks/Settings/UIData/useReportCustomization';
 import { useEngineerSettings } from '../../hooks/Settings/ReportData/useEngineerSettings';
 import { useEquipmentSettings } from '../../hooks/Settings/ReportData/useEquipmentSettings';
-import { useStorageMode } from '../../hooks/Settings/useStorageMode';
-import { useSync } from '../../hooks/Settings/useSync';
 import { useUnsavedChanges } from '../../hooks/Settings/useUnsavedChanges';
 import { useSettingsSave } from '../../hooks/Settings/useSettingsSave';
 import SubscriptionPlan from '../../components/Settings/SubscriptionPlan';
-import StorageSettings from '../../components/Settings/StorageSettings';
-import DataSync from '../../components/Settings/DataSync';
 import ChecklistConfiguration from '../../components/Settings/ChecklistConfiguration';
 import EngineerSettings from '../../components/Settings/EngineerSettings';
 import EquipmentSettings from '../../components/Settings/EquipmentSettings';
@@ -47,9 +43,6 @@ const Settings = () => {
     // Hook to manage unsaved changes warnings
     useUnsavedChanges(isDirty);
 
-    const { storageMode, handleStorageModeChange } = useStorageMode();
-    const { syncing, syncProgress, handleSyncLocalToCloud, handleSyncCloudToLocal } = useSync();
-
     // Hook to orchestrate saving all settings
     const { handleSaveAll, isSaving } = useSettingsSave({
         checklistHook,
@@ -76,7 +69,7 @@ const Settings = () => {
                     <h1 className="settings-title">Configurações</h1>
                     <p className="settings-description">
                         {activeTab === 'account'
-                            ? 'Gerencie sua conta e preferências de armazenamento.'
+                            ? 'Gerencie sua conta.'
                             : 'Personalize os dados e aparência dos seus relatórios.'}
                         {isDirty && activeTab === 'report' && <span style={{ color: 'orange', marginLeft: '10px' }}>(Alterações não salvas)</span>}
                     </p>
@@ -105,20 +98,6 @@ const Settings = () => {
                     <SubscriptionPlan
                         subscription={currentUser?.subscription}
                         onUpgrade={handleUpgrade}
-                    />
-
-                    <StorageSettings
-                        storageMode={storageMode}
-                        onStorageModeChange={handleStorageModeChange}
-                        isFreePlan={isFreePlan}
-                    />
-
-                    <DataSync
-                        syncing={syncing}
-                        syncProgress={syncProgress}
-                        onSyncLocalToCloud={handleSyncLocalToCloud}
-                        onSyncCloudToLocal={handleSyncCloudToLocal}
-                        isFreePlan={isFreePlan}
                     />
                     <AccountSettings />
                 </>
