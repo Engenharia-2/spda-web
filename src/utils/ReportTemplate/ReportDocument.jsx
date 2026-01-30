@@ -14,6 +14,17 @@ Font.register({
 const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
     const measurementDateTime = extractMeasurementDateTime(data.measurements);
 
+    const formatDate = (dateStr) => {
+        if (!dateStr || dateStr === 'Não Informado') return dateStr;
+        // Check if it's YYYY-MM-DD
+        const regex = /^(\d{4})-(\d{2})-(\d{2})$/;
+        const match = dateStr.match(regex);
+        if (match) {
+            return `${match[3]}/${match[2]}/${match[1]}`;
+        }
+        return dateStr;
+    };
+
     let h2Counter = 0;
     const incrementH2 = () => { h2Counter++; return h2Counter; };
 
@@ -282,8 +293,8 @@ const ReportDocument = ({ data, resolvedAttachments, resolvedSignature }) => {
                             <Text style={styles.value}><Text style={styles.label}>Nº de Série: </Text>{data.serialNumber || 'Não Informado'}</Text>
                         </View>
                         <View style={styles.column}>
-                            <Text style={styles.value}><Text style={styles.label}>Calibração: </Text>{data.calibrationDate || 'Não Informado'}</Text>
-                            <Text style={styles.value}><Text style={styles.label}>Validade: </Text>{data.calibrationValidity || 'Não Informado'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Calibração: </Text>{formatDate(data.calibrationDate) || 'Não Informado'}</Text>
+                            <Text style={styles.value}><Text style={styles.label}>Validade: </Text>{formatDate(data.calibrationValidity) || 'Não Informado'}</Text>
                         </View>
                     </View>
                     <View style={styles.divider} />

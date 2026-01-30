@@ -37,11 +37,13 @@ const Dashboard = () => {
             <div className="stats-grid">
                 <StatCard
                     title="Relatórios Pendentes"
+                    subtitle={'Finalize seus laudos'}
                     value={stats.pendingReportsCount}
                     icon={<FileClock />}
                 />
                 <StatCard
                     title="Uso do Armazenamento"
+                    subtitle={'Percentual utilizado:'}
                     value={stats.storage.usagePercentage}
                     icon={<HardDrive />}
                     borderColor={stats.storage.borderColor}
@@ -49,7 +51,7 @@ const Dashboard = () => {
                 {stats.displayedEquipment && (
                     <StatCard
                         title={`Equipamento: ${stats.displayedEquipment.equipmentName}`}
-                        subtitle={'Validade:'}
+                        subtitle={'Validade da calibração:'}
                         value={stats.validityStatus.value}
                         icon={<Calendar />}
                         borderColor={stats.validityStatus.borderColor}
